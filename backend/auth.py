@@ -6,6 +6,7 @@ auth = APIRouter(prefix="/auth")
 class User(BaseModel):
     id: str
     password: str
+    user_name: str
 
 
 @auth.post("/signin", tags=["auth"])
