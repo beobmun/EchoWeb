@@ -5,7 +5,13 @@ import auth
 import upload_file
 import run_models
 
-app = FastAPI()
+SWAGGER_HEADERS = {
+    "title": "EchoWeb AI"
+}
+
+app = FastAPI(
+    **SWAGGER_HEADERS
+)
 
 app.include_router(auth.auth)
 app.include_router(upload_file.upload)
@@ -29,5 +35,5 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return FileResponse("../frontend/home.html")
+    return {"message": "Hello World"}
 
