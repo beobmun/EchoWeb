@@ -1,12 +1,9 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
+
+from schemas import User
+
 
 auth = APIRouter(prefix="/auth")
-
-class User(BaseModel):
-    id: str
-    password: str
-    user_name: str
 
 
 @auth.post("/signin", tags=["auth"])
