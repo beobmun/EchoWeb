@@ -1,1 +1,6 @@
 fastapi[all]
+sqlalchemy
+bcrypt
+pymysql
+pydantic-settings
+cryptography
