@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-import auth
-import upload_file
-import run_models
+
+import models, auth, upload_file, run_models
+from database import engine
+
+models.Base.metadata.create_all(bind=engine)
 
 SWAGGER_HEADERS = {
     "title": "EchoWeb AI"
