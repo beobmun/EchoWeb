@@ -22,36 +22,32 @@ async def sign_in(user: schemas.User, db: Session = Depends(get_db)):
     try:
         if not db_user:
             raise HTTPException(status_code=400, detail="Invalid email")
-        if not bcrypt.checkpw(user.password.encode(), db_user.password.encode()):
-            raise HTTPException(status_code=400, detail="Invalid email or password")
+        elif not bcrypt.checkpw(user.password.encode(), db_user.password.encode()):
+            raise HTTPException(status_code=400, detail="Invalid password")
+        else:
+            return {"result": True, "message": "로그인 성공"}
+    except HTTPException as e:
+        return {"result": False, "message": str(e)}
+    
+@auth.post("/signup", tags=["auth"])
+async def sign_up(user: schemas.User, db: Session = Depends(get_db)):
+    try:
+        db_user = crud.get_user_by_email(db, user.email)
+        if db_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        hashed_password = bcrypt.hashpw(user.password.encode(), bcrypt.gensalt())
+        user.password = hashed_password.decode()
+        
+        crud.create_user(db, user)
         return {"result": True}
     except HTTPException as e:
-        return {"result": False, "error": str(e)}
-    
-# @auth.post("/signup", tags=["auth"])
-# async def sign_up(user: User, db: Session = Depends(get_db)):
-    # try:
-    #     if db.quer(UserInDB).filter(UserInDB.email == user.email).first():
-    #         raise HTTPException(status_code=400, detail="Email already registered")
-    #     hased_pw = bcrypt.hashpw(user.password.encode(), bcrypt.gensalt()).decode()
-    #     new_user = UserInDB(
-    #         email=user.email,
-    #         password=hased_pw,
-    #         username=user.username
-    #     )
-    #     db.add(new_user)
-    #     db.commit()
-    #     db.refresh(new_user)
-    #     return {"result": True}
-    # except HTTPException as e:
-    #     return {"result": False, "error": str(e)}
+        return {"result": False, "message": str(e)}
 
 @auth.get("/signup/{user_id}", tags=["auth"])
-async def check_id(user_id: str):
-    # db에서 user_id와 중복되는 id가 있는지 확인하는 로직을 추가해야 합니다.
-    # 예를 들어, db에서 user_id와 중복되는 id가 있으면 False, 아니면 True를 반환합니다.
-    # 여기서는 단순히 True를 반환합니다.
-    if user_id == "test":
-        return {"result": False}
+async def check_id(user_id: str, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_email(db, user_id)
+    if db_user:
+        return {"result": False, "message": "이미 사용중인 e-amil입니다."}
     else:
-        return {"result": True}
+        return {"result": True, "message": "사용 가능한 e-mail입니다."}
