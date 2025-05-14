@@ -44,9 +44,9 @@ async def sign_up(user: schemas.User, db: Session = Depends(get_db)):
     except HTTPException as e:
         return {"result": False, "message": str(e)}
 
-@auth.get("/signup/{user_id}", tags=["auth"])
-async def check_id(user_id: str, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, user_id)
+@auth.get("/signup/{email}", tags=["auth"])
+async def check_id(email: str, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_email(db, email)
     if db_user:
         return {"result": False, "message": "이미 사용중인 e-amil입니다."}
     else:
