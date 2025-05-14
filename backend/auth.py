@@ -40,7 +40,7 @@ async def sign_up(user: schemas.User, db: Session = Depends(get_db)):
         user.password = hashed_password.decode()
         
         crud.create_user(db, user)
-        return {"result": True}
+        return {"result": True, "message": "회원가입 성공"}
     except HTTPException as e:
         return {"result": False, "message": str(e)}
 
