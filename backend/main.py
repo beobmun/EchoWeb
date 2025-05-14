@@ -1,11 +1,19 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-import auth
-import upload_file
-import run_models
 
-app = FastAPI()
+import models, auth, upload_file, run_models
+from database import engine
+
+models.Base.metadata.create_all(bind=engine)
+
+SWAGGER_HEADERS = {
+    "title": "EchoWeb AI"
+}
+
+app = FastAPI(
+    **SWAGGER_HEADERS
+)
 
 app.include_router(auth.auth)
 app.include_router(upload_file.upload)
@@ -29,5 +37,5 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return FileResponse("../frontend/home.html")
+    return {"message": "Hello World"}
 
