@@ -22,7 +22,9 @@ app.include_router(run_models.run)
 # CORS 설정
 origins = [
     "http://localhost:4242",
-    "http://127.0.0.1:4242"
+    "http://127.0.0.1:4242",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
 ]
 
 app.add_middleware(
