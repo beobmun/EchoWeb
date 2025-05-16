@@ -4,6 +4,7 @@ from database import SessionLocal, engine, Base
 from pydantic import BaseModel
 import bcrypt
 import schemas, crud
+import logging
 
 
 auth = APIRouter(prefix="/auth")
@@ -31,6 +32,7 @@ async def sign_in(user: schemas.User, db: Session = Depends(get_db)):
     
 @auth.post("/signup", tags=["auth"])
 async def sign_up(user: schemas.User, db: Session = Depends(get_db)):
+    logging.info(f"Received signup request: {user}")
     try:
         db_user = crud.get_user_by_email(db, user.email)
         if db_user:
