@@ -32,6 +32,18 @@ services:
         networks:
             - echoweb_default
 
+    frontend:
+        build:
+            context: ./frontend/react-echoweb
+            dockerfile: Dockerfile
+        container_name: frontend
+        ports:
+            - 8042:80
+        depends_on:
+            - backend
+        networks:
+            - echoweb_default
+
 networks:
     echoweb_default:
         driver: bridge
