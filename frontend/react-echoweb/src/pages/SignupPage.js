@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './SignupPage.css';
+// import 'dotenv';
+
+// SERVER_IP = process.env.SERVER_IP;
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -110,7 +113,7 @@ const SignupPage = () => {
 
     try {
         
-        const res = await axios.post('http://localhost:4242/auth/signup', {
+        const res = await axios.post('/api/auth/signup', {
         "email": email,
         "password": password,
         "username": username,
