@@ -15,7 +15,7 @@ def get_db():
     try:
         yield db
     finally:
-        db.close()    
+        db.close()
 
 @auth.post("/signin", tags=["auth"])
 async def sign_in(user: schemas.User, db: Session = Depends(get_db)):
