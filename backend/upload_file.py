@@ -1,35 +1,69 @@
-from fastapi import APIRouter
-from fastapi import UploadFile, File
+from fastapi import APIRouter, UploadFile, HTTPException, File
+import zipfile
+import os
+import shutil
 
 upload = APIRouter(prefix="/upload")
 
+def unzip_file(src, dest):
+    try:
+        os.makedirs(dest, exist_ok=True)
+        with zipfile.ZipFile(src, 'r') as zip_ref:
+            zip_ref.extractall(dest)
+            # dest 경로에 __MACOSX 폴더가 생성되는 경우 삭제
+            shutil.rmtree(os.path.join(dest, '__MACOSX'), ignore_errors=True)
+            # 압축 해제된 파일 경로를 반환
+            unzip_files = zip_ref.namelist()
+            # 동영상 외 파일은 삭제, video 파일만 남김
+            video_files = list()
+            for file in unzip_files:
+                try:
+                    if not file.startswith('__MACOSX') and file.endswith(('.mp4', '.avi')):
+                        video_files.append(file)
+                    elif file.startswith('__MACOSX'):
+                        continue
+                    else:
+                        os.remove(os.path.join(dest, file))
+                except Exception as e:
+                    print(f"Error removing file {file}: {str(e)}")
+            # video_files 경로 반환
+            return video_files
+            # return unzip_files
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error unzipping file: {str(e)}")
+    
 @upload.post("/zip", tags=["upload"])
 async def upload_zip(file: UploadFile):
-    # 파일이 zip 파일인지 확인하는 로직을 추가해야 합니다.
-    # 예를 들어, file.content_type이 "application/zip"인지 확인합니다.
+    try:
+        # 파일이 zip 파일인지 확인
+        if file.content_type != "application/zip":
+            raise HTTPException(status_code=400, detail="Invalid file type. Only zip files are allowed.")
+        os.makedirs("temp", exist_ok=True)
+        upload_path = f"temp/{file.filename}"
     
-    # upload_path = f"temp/{file.filename}"
-    
-    # content = await file.read()
-    # with open(upload_path, "wb") as f:
-    #     f.write(content)
-        
-    return {"filename": file.filename, "content_type": file.content_type}  
-
-@upload.get("/unzip", tags=["upload"])
-async def unzip_file(file_path: str):
-    # file_path의 zip 파일을 unzip하는 로직을 추가해야 합니다.
-    # 예를 들어, zipfile 모듈을 사용하여 zip 파일을 unzip하고,
-    # unzip된 파일들을 temp 폴더에 저장합니다.
-    # 여기서는 단순히 unzip된 파일들의 경로를 반환합니다.
-
-    return {"message": ["unziped_file_path/file1.txt", "unziped_file_path/file2.txt"]}
+        # 파일을 temp 폴더에 저장
+        content = await file.read()
+        with open(upload_path, "wb") as f:
+            f.write(content)
+        # 파일을 temp 폴더에 저장한 후, unzip_file 함수를 호출하여 압축 해제
+        unzip_files = unzip_file(upload_path, "temp")
+        return {"result": True, "unzip_files": unzip_files}  
+    except HTTPException as e:
+        return {"result": False, "message": str(e)}
 
 @upload.post("/video", tags=["upload"])
 async def upload_video(file: UploadFile):
-    # video 파일을 업로드하는 로직을 추가해야 합니다.
-    # 예를 들어, video 파일을 temp 폴더에 저장하고,
-    # 저장된 video 파일의 경로를 반환합니다.
-    # 여기서는 단순히 video 파일의 경로를 반환합니다.
-    return {"message": f"uploaded_video_path/video.mp4"}
+    try:
+        # 파일이 mp4나 avi 파일인지 확인
+        if file.content_type != "video/mp4":
+            raise HTTPException(status_code=400, detail="Invalid file type. Only mp4 files are allowed.")
+        os.makedirs("temp", exist_ok=True)
+        upload_path = f"temp/{file.filename}"
+        # 파일을 temp 폴더에 저장
+        content = await file.read()
+        with open(upload_path, "wb") as f:
+            f.write(content)
+        return {"result": True, "file_path": upload_path}
+    except HTTPException as e:
+        return {"result": False, "message": str(e)}
 
