@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 추가
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // 🔹 axios 추가
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -7,21 +8,19 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const navigate = useNavigate(); // 훅으로 이동 함수 받기
+  const navigate = useNavigate();
 
   const validate = () => {
     let valid = true;
     setEmailError('');
     setPasswordError('');
 
-    // 이메일 유효성 검사
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setEmailError('이메일 형식이 아닙니다.');
       valid = false;
     }
 
-    // 비밀번호 비었는지 확인
     if (!password) {
       setPasswordError('패스워드를 입력하세요.');
       valid = false;
@@ -30,15 +29,31 @@ const LoginPage = () => {
     return valid;
   };
 
-  const handleSignupClick = () => {
-    navigate('/signup'); // 2p로 이동
+  const handleSignupClick = (e) => {
+    e.preventDefault();
+    navigate('/signup');
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (validate()) {
-      // TODO: 서버에 로그인 요청 (axios 등)
-      console.log('로그인 시도:', email, password);
+    if (!validate()) return;
+
+    try {
+      const res = await axios.post('/api/auth/', {
+        email: email,
+        password: password
+      });
+
+      if (res.data.result === true) {
+        alert('로그인 성공!');
+        navigate('/upload'); // 🔹 로그인 성공 후 이동할 페이지
+      } else {
+        alert(res.data.message || '로그인 실패');
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert('서버 오류로 로그인에 실패했습니다.');
     }
   };
 
@@ -69,9 +84,6 @@ const LoginPage = () => {
           아직 회원이 아니신가요?
           <a href="/signup" className="signup-btn-inline" onClick={handleSignupClick}>회원가입</a>
         </div>
-
-
-
       </form>
     </div>
   );
