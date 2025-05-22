@@ -3,16 +3,18 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import LoginPage from './pages/LoginPage';
-import Signup_LiveValidationPage from './pages/Signup_LiveValidationPage';
+import SignupPage from './pages/SignupPage';
 import SignupSuccessPage from './pages/SignupSuccessPage';
+import UploadPage from './pages/UploadPage';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LoginPage />} />
-        <Route path="/signup" element={<Signup_LiveValidationPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="/signup-success" element={<SignupSuccessPage />} />
+        <Route path="/upload" element={<UploadPage />} />
       </Routes>
     </Router>
   );

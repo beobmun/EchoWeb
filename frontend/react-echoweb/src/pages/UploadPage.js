@@ -1,10 +1,12 @@
-// 4p UploadPage.jsx (React Component - 수정됨)
+// 4p UploadPage.jsx (React Component - 테스트모드/실제모드 분기 추가)
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './UploadPage.css';
 
 const UploadPage = () => {
+  const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API/모델/DB 연동 사용
+
   const [file, setFile] = useState(null);
   const [uploadType, setUploadType] = useState('zip');
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -17,7 +19,6 @@ const UploadPage = () => {
     if (file) {
       autoUpload();
     }
-    // eslint-disable-next-line
   }, [file]);
 
   const handleFileSelect = (e) => {
@@ -49,35 +50,78 @@ const UploadPage = () => {
     formData.append('type', uploadType);
 
     try {
-      const res = await axios.post('/api/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percent);
-        },
-      });
+      if (TEST_MODE) {
+        // ✅ 테스트 모드 - 강제 진행
+        await new Promise((res) => setTimeout(res, 1000));
+        setUploadProgress(100);
+        setStatus((prev) => ({ ...prev, upload: 'success' }));
+        setProcessLog((prev) => [...prev, '✅ 업로드 완료 (테스트 모드)']);
+      } else {
+        // ✅ 실제 업로드 - DB와 연동 (예: upload_id 리턴)
+        const res = await axios.post('/api/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          },
+        });
 
-      setStatus((prev) => ({ ...prev, upload: 'success' }));
-      setProcessLog((prev) => [...prev, '✅ 업로드 완료']);
+        const { upload_id } = res.data; // ✅ DB에서 생성된 업로드 ID
+        setStatus((prev) => ({ ...prev, upload: 'success' }));
+        setProcessLog((prev) => [...prev, `✅ 업로드 완료 (ID: ${upload_id})`]);
+      }
 
       if (uploadType === 'zip') {
         setProcessLog((prev) => [...prev, '압축 해제 중...']);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // 압축 해제 대기 시뮬레이션
-        setStatus((prev) => ({ ...prev, unzip: 'success' }));
-        setProcessLog((prev) => [...prev, '✅ 압축 해제 완료']);
+
+        if (TEST_MODE) {
+          await new Promise((res) => setTimeout(res, 1000));
+          setStatus((prev) => ({ ...prev, unzip: 'success' }));
+          setProcessLog((prev) => [...prev, '✅ 압축 해제 완료 (테스트 모드)']);
+        } else {
+          // ✅ 실제 압축해제 - DB와 연동
+          const unzipRes = await axios.post('/api/unzip', { upload_id: 'UPLOAD_ID_SAMPLE' });
+          if (unzipRes.data.success) {
+            setStatus((prev) => ({ ...prev, unzip: 'success' }));
+            setProcessLog((prev) => [...prev, '✅ 압축 해제 완료']);
+          } else {
+            throw new Error('압축 해제 실패');
+          }
+        }
 
         setProcessLog((prev) => [...prev, 'A4C 뷰 추출 중...']);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // 추출 대기 시뮬레이션
-        setStatus((prev) => ({ ...prev, classify: 'success' }));
-        setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
+
+        if (TEST_MODE) {
+          await new Promise((res) => setTimeout(res, 1000));
+          setStatus((prev) => ({ ...prev, classify: 'success' }));
+          setProcessLog((prev) => [...prev, '✅ A4C 추출 완료 (테스트 모드)']);
+        } else {
+          // ✅ 실제 A4C 추출 - 모델 + DB 연동
+          const classifyRes = await axios.post('/api/classify-a4c', { upload_id: 'UPLOAD_ID_SAMPLE' });
+          if (classifyRes.data.success) {
+            setStatus((prev) => ({ ...prev, classify: 'success' }));
+            setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
+          } else {
+            throw new Error('A4C 추출 실패');
+          }
+        }
       } else {
         setProcessLog((prev) => [...prev, 'A4C 판별 중...']);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // ✅ 여기서 실제 A4C 판별 모델 적용 예정!
-        // 현재는 A4C 영상이라고 가정하고 강제로 성공 처리
-        setStatus((prev) => ({ ...prev, classify: 'success' }));
-        setProcessLog((prev) => [...prev, '✅ A4C 영상 확인됨']);
+        if (TEST_MODE) {
+          await new Promise((res) => setTimeout(res, 1000));
+          setStatus((prev) => ({ ...prev, classify: 'success' }));
+          setProcessLog((prev) => [...prev, '✅ A4C 영상 확인됨 (테스트 모드)']);
+        } else {
+          // ✅ 실제 A4C 판별 - 모델 연동
+          const checkRes = await axios.post('/api/check-a4c', { upload_id: 'UPLOAD_ID_SAMPLE' });
+          if (checkRes.data.is_a4c) {
+            setStatus((prev) => ({ ...prev, classify: 'success' }));
+            setProcessLog((prev) => [...prev, '✅ A4C 영상 확인됨']);
+          } else {
+            throw new Error('A4C 영상이 아닙니다');
+          }
+        }
       }
 
       setIsDone(true);

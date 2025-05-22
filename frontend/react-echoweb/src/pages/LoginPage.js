@@ -35,27 +35,38 @@ const LoginPage = () => {
   };
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+  e.preventDefault();
+  if (!validate()) return;
 
-    try {
-      const res = await axios.post('/api/auth/', {
-        email: email,
-        password: password
-      });
+  const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API 사용
 
-      if (res.data.result === true) {
-        alert('로그인 성공!');
-        navigate('/upload'); // 🔹 로그인 성공 후 이동할 페이지
-      } else {
-        alert(res.data.message || '로그인 실패');
-      }
+  if (TEST_MODE) {
+    // ✅ 테스트 모드: 강제 로그인 성공 처리
+    alert('로그인 성공! (테스트용)');
+    navigate('/upload');
+    return;
+  }
 
-    } catch (err) {
-      console.error(err);
-      alert('서버 오류로 로그인에 실패했습니다.');
+  // ✅ 실제 API 호출 모드
+  try {
+    const res = await axios.post('/api/auth/', {
+      email: email,
+      password: password
+    });
+
+    if (res.data.result === true) {
+      alert('로그인 성공!');
+      navigate('/upload');
+    } else {
+      alert(res.data.message || '로그인 실패');
     }
-  };
+
+  } catch (err) {
+    console.error(err);
+    alert('서버 오류로 로그인에 실패했습니다.');
+  }
+};
+
 
   return (
     <div className="login-container">
