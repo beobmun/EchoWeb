@@ -1,12 +1,14 @@
-FROM python:3.9-slim
+FROM nvidia/cuda:12.4.1-base-ubuntu22.04
 
 WORKDIR /app
 
 COPY . .
 
 RUN apt-get update && \
-    apt-get install -y build-essential curl netcat-openbsd bash && \
+    apt-get install -y python3.9 python3-pip python3-venv build-essential curl netcat-openbsd bash libgl1 libglib2.0-0 libsm6 libxext6 libxrender-dev && \
     apt-get clean && \
+    ln -sf /usr/bin/python3.9 /usr/bin/python && \
+    ln -sf /usr/bin/pip3 /usr/bin/pip && \
     pip install --upgrade pip && \
     pip install -r requirements.txt && \
     chmod +x ./wait-for-mysql.sh
