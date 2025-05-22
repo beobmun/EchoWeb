@@ -19,7 +19,7 @@ def unzip_file(src, dest):
             for file in unzip_files:
                 try:
                     if not file.startswith('__MACOSX') and file.endswith(('.mp4', '.avi')):
-                        video_files.append(file)
+                        video_files.append(os.path.join(dest, file))
                     elif file.startswith('__MACOSX'):
                         continue
                     else:

@@ -6,9 +6,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from backend.classification import video
+from classification.video import Video2Img
 
-CLASSIFICATION_MODEL_PATH = "../model_weights/view_model.pth"
+CLASSIFICATION_MODEL_PATH = "model_weights/view_model.pth"
 
 class CNNModel(nn.Module):
     def __init__(self):
@@ -95,24 +95,24 @@ class ClassificationModel:
 
 class Classification:
     def __init__(self, video_path):
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = (ClassificationModel()
-                      .with_weight(CLASSIFICATION_MODEL_PATH)
-                      .with_device(self.device)
-                      .build())
         self.video_path = video_path
         
     def predict(self):
-        imgs = (video.Video2Img().
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model = (ClassificationModel()
+                .with_weight(CLASSIFICATION_MODEL_PATH)
+                .with_device(device)
+                .build())
+        imgs = (Video2Img().
                 load_video(self.video_path).
                 convert())
         pred = []
         for img in imgs:
             img = cv2.resize(img, (224, 224))
             img = torch.tensor(img).unsqueeze(0).unsqueeze(0).float()  # Convert to float
-            img = img.to(self.device)
+            img = img.to(device)
             with torch.no_grad():
-                output = self.model(img)
+                output = model(img)
                 _, predicted = torch.max(output, 1)
                 pred.append(predicted.item())
         return np.mean(pred)
