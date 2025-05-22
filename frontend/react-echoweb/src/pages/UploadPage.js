@@ -1,11 +1,16 @@
-// 4p UploadPage.jsx (React Component - 테스트모드/실제모드 분기 추가)
-import React, { useState, useEffect } from 'react';
+// 4p UploadPage.jsx (React Component - 테스트 시나리오 분기 포함)
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './UploadPage.css';
 
 const UploadPage = () => {
-  const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API/모델/DB 연동 사용
+  const TEST_MODE = true;
+  const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: false };
+
+  const location = useLocation();
+  const fromRetry = location.state?.fromRetry;
+  const fileInputRef = useRef(null);
 
   const [file, setFile] = useState(null);
   const [uploadType, setUploadType] = useState('zip');
@@ -13,24 +18,42 @@ const UploadPage = () => {
   const [processLog, setProcessLog] = useState([]);
   const [status, setStatus] = useState({ upload: null, unzip: null, classify: null });
   const [isDone, setIsDone] = useState(false);
+  const [showHomeButton, setShowHomeButton] = useState(false);
+  const [triggerReset, setTriggerReset] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (file) {
+    if (fromRetry || triggerReset) {
+      resetState();
+    }
+  }, [fromRetry, triggerReset]);
+
+  useEffect(() => {
+    if (file && uploadProgress === 0) {
       autoUpload();
     }
   }, [file]);
 
   const handleFileSelect = (e) => {
-    setFile(e.target.files[0]);
-    resetState();
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(null);
+      setTimeout(() => {
+        resetState();
+        setFile(selectedFile);
+      }, 0);
+    }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     if (e.dataTransfer.files.length) {
-      setFile(e.dataTransfer.files[0]);
-      resetState();
+      const droppedFile = e.dataTransfer.files[0];
+      setFile(null);
+      setTimeout(() => {
+        resetState();
+        setFile(droppedFile);
+      }, 0);
     }
   };
 
@@ -39,6 +62,11 @@ const UploadPage = () => {
     setProcessLog([]);
     setStatus({ upload: null, unzip: null, classify: null });
     setUploadProgress(0);
+    setShowHomeButton(false);
+    setTriggerReset(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const autoUpload = async () => {
@@ -51,13 +79,11 @@ const UploadPage = () => {
 
     try {
       if (TEST_MODE) {
-        // ✅ 테스트 모드 - 강제 진행
         await new Promise((res) => setTimeout(res, 1000));
         setUploadProgress(100);
         setStatus((prev) => ({ ...prev, upload: 'success' }));
         setProcessLog((prev) => [...prev, '✅ 업로드 완료 (테스트 모드)']);
       } else {
-        // ✅ 실제 업로드 - DB와 연동 (예: upload_id 리턴)
         const res = await axios.post('/api/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (progressEvent) => {
@@ -65,21 +91,22 @@ const UploadPage = () => {
             setUploadProgress(percent);
           },
         });
-
-        const { upload_id } = res.data; // ✅ DB에서 생성된 업로드 ID
+        const { upload_id } = res.data;
         setStatus((prev) => ({ ...prev, upload: 'success' }));
         setProcessLog((prev) => [...prev, `✅ 업로드 완료 (ID: ${upload_id})`]);
       }
 
       if (uploadType === 'zip') {
         setProcessLog((prev) => [...prev, '압축 해제 중...']);
-
         if (TEST_MODE) {
           await new Promise((res) => setTimeout(res, 1000));
-          setStatus((prev) => ({ ...prev, unzip: 'success' }));
-          setProcessLog((prev) => [...prev, '✅ 압축 해제 완료 (테스트 모드)']);
+          if (TEST_SCENARIO.unzipSuccess) {
+            setStatus((prev) => ({ ...prev, unzip: 'success' }));
+            setProcessLog((prev) => [...prev, '✅ 압축 해제 완료 (테스트 모드)']);
+          } else {
+            throw new Error('압축 해제 실패 (테스트 모드)');
+          }
         } else {
-          // ✅ 실제 압축해제 - DB와 연동
           const unzipRes = await axios.post('/api/unzip', { upload_id: 'UPLOAD_ID_SAMPLE' });
           if (unzipRes.data.success) {
             setStatus((prev) => ({ ...prev, unzip: 'success' }));
@@ -90,13 +117,15 @@ const UploadPage = () => {
         }
 
         setProcessLog((prev) => [...prev, 'A4C 뷰 추출 중...']);
-
         if (TEST_MODE) {
           await new Promise((res) => setTimeout(res, 1000));
-          setStatus((prev) => ({ ...prev, classify: 'success' }));
-          setProcessLog((prev) => [...prev, '✅ A4C 추출 완료 (테스트 모드)']);
+          if (TEST_SCENARIO.classifySuccess) {
+            setStatus((prev) => ({ ...prev, classify: 'success' }));
+            setProcessLog((prev) => [...prev, '✅ A4C 추출 완료 (테스트 모드)']);
+          } else {
+            throw new Error('A4C 추출 실패 (테스트 모드)');
+          }
         } else {
-          // ✅ 실제 A4C 추출 - 모델 + DB 연동
           const classifyRes = await axios.post('/api/classify-a4c', { upload_id: 'UPLOAD_ID_SAMPLE' });
           if (classifyRes.data.success) {
             setStatus((prev) => ({ ...prev, classify: 'success' }));
@@ -107,13 +136,15 @@ const UploadPage = () => {
         }
       } else {
         setProcessLog((prev) => [...prev, 'A4C 판별 중...']);
-
         if (TEST_MODE) {
           await new Promise((res) => setTimeout(res, 1000));
-          setStatus((prev) => ({ ...prev, classify: 'success' }));
-          setProcessLog((prev) => [...prev, '✅ A4C 영상 확인됨 (테스트 모드)']);
+          if (TEST_SCENARIO.classifySuccess) {
+            setStatus((prev) => ({ ...prev, classify: 'success' }));
+            setProcessLog((prev) => [...prev, '✅ A4C 영상 확인됨 (테스트 모드)']);
+          } else {
+            throw new Error('A4C 영상이 아님 (테스트 모드)');
+          }
         } else {
-          // ✅ 실제 A4C 판별 - 모델 연동
           const checkRes = await axios.post('/api/check-a4c', { upload_id: 'UPLOAD_ID_SAMPLE' });
           if (checkRes.data.is_a4c) {
             setStatus((prev) => ({ ...prev, classify: 'success' }));
@@ -128,7 +159,12 @@ const UploadPage = () => {
     } catch (err) {
       console.error(err);
       setProcessLog((prev) => [...prev, '❌ 실패']);
-      alert(`오류 발생: ${err.message}\n다시 시도하시겠습니까?`);
+      const retry = window.confirm(`오류 발생: ${err.message}\n다시 시도하시겠습니까?`);
+      if (retry) {
+        setTriggerReset(true);
+      } else {
+        setShowHomeButton(true);
+      }
     }
   };
 
@@ -158,6 +194,7 @@ const UploadPage = () => {
           <input
             type="file"
             id="file-input"
+            ref={fileInputRef}
             accept={uploadType === 'zip' ? '.zip' : '.avi,.mp4'}
             onChange={handleFileSelect}
             style={{ display: 'none' }}
@@ -179,6 +216,11 @@ const UploadPage = () => {
         <ul>
           {processLog.map((log, index) => <li key={index}>{log}</li>)}
         </ul>
+        {showHomeButton && (
+          <div style={{ textAlign: 'right', marginTop: '10px' }}>
+            <button onClick={() => setTriggerReset(true)} style={{ fontSize: '14px', color: '#555', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}>홈으로...</button>
+          </div>
+        )}
       </div>
     </div>
   );
