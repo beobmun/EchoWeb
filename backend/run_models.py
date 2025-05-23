@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from classification.classification import Classification
+from utils.classification import Classification
 
 run = APIRouter(prefix="/run")
 
