@@ -1,16 +1,28 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from classification.classification import Classification
 
 run = APIRouter(prefix="/run")
 
-@run.get("/classification", tags=["run"])
-async def run_classification(file_path: str):
-    # classification 모델을 실행하는 로직을 추가해야 합니다.
-    # 예를 들어, classification 모델을 실행하고,
-    # 결과를 반환합니다.
-    # classification 모델의 결과로는 해당 영상의 file_path가 return됩니다.
-    # 여기서는 단순히 file_path를 반환합니다.
-    return {"result": ["classification_result_path/file1.mp4", "classification_result_path/file2.mp4"]}
-
+@run.post("/classification", tags=["run"])
+async def run_classification(file_paths: list[str]):
+    try:
+        results = list()
+        # 동영상 파일 경로를 받아서 분류 모델을 실행합니다.
+        for f in file_paths:
+            # 동영상 파일인지 확인
+            if not f.endswith(('.mp4', '.avi', '.mov')):
+                continue
+            # Classification 모델을 실행
+            result = Classification(f).run()
+            if result is not None:
+                results.append(f)
+        if not results:
+            return {"result": True, "file_path": file_paths}
+        else:
+            return {"result": True, "file_path": results}
+    except HTTPException as e:
+        return {"result": False, "message": str(e)}
+    
 @run.get("/segmentation", tags=["run"])
 async def run_segmentation(file_path: str):
     # segmentation 모델을 실행하는 로직을 추가해야 합니다.
