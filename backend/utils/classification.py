@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from classification.video import Video2Img
+from utils.video import Video2Img
 
 CLASSIFICATION_MODEL_PATH = "model_weights/view_model.pth"
 

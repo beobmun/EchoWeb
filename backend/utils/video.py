@@ -1,6 +1,6 @@
 import cv2
-import numpy as np
 import os
+import numpy as np
 
 class Video2Img:
     def __init__(self):
@@ -37,4 +37,20 @@ class Video2Img:
         self.cap.release()
         self.imgs = np.array(self.imgs)
         return self.imgs
+    
+    def save_imgs(self, video_name, save_dir):
+        os.makedirs(f"{save_dir}/{video_name}", exist_ok=True)
+        for i, img in enumerate(self.imgs):
+            cv2.imwrite(f"{save_dir}/{video_name}/{i}.jpg", img)
+    
+    def get_fps(self):
+        return self.fps
+    def get_width(self):
+        return self.width
+    def get_height(self):
+        return self.height
+    def get_imgs(self):
+        return self.imgs
+    
+
 

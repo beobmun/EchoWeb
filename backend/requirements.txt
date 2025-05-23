@@ -6,10 +6,11 @@ pydantic-settings
 cryptography
 numpy
 pandas
+matplotlib
+opencv-python
+huggingface_hub
 
 --extra-index-url https://download.pytorch.org/whl/cu118
 torch==2.3.1+cu118
 torchvision==0.18.1
 torchaudio==2.3.1
-
-opencv-python
