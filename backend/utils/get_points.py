@@ -1,6 +1,6 @@
 import numpy as np
 
-class GetPoins:
+class GetPoints:
     def __init__(self, mask):
         self.mask = mask
     
@@ -35,18 +35,18 @@ class GetPoins:
                 rect[r-top][c-left] = self.mask[r][c]
         return rect
     
-    def get_pos(self, base_rc):
-        threshold = self.mask.max()*0.9
-        coords = np.argwhere(self.mask > threshold)
+    def get_pos(self, mask, base_rc):
+        threshold = mask.max()*0.9
+        coords = np.argwhere(mask > threshold)
         if len(coords) > 25:
             yx = np.array(coords[np.random.randint(len(coords))])
             x, y = yx[1]+base_rc[1], yx[0]+base_rc[0]
             return [x, y]
         return None
     
-    def get_neg(self, base_rc):
-        threshold = self.mask.max()*0.1
-        coords = np.argwhere(self.mask < threshold)
+    def get_neg(self, mask, base_rc):
+        threshold = mask.max()*0.1
+        coords = np.argwhere(mask < threshold)
         if len(coords) > 25:
             yx = np.array(coords[np.random.randint(len(coords))])
             x, y = yx[1]+base_rc[1], yx[0]+base_rc[0]
