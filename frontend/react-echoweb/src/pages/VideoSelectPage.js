@@ -1,23 +1,25 @@
-// 5p VideoSelectPage.jsx
+// VideoSelectPage.jsx (5p)
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import SegmentationPopup from './SegmentationPopup';
 import './VideoSelectPage.css';
 
 const VideoSelectPage = () => {
-  const TEST_MODE = true;
+  const TEST_MODE = true; // true: 프론트 단독 테스트 / false: 백엔드 API 연동
 
   const navigate = useNavigate();
   const location = useLocation();
-  // 4p에서 넘어온 processLog(배열) props
   const prevProcessLog = (location.state && location.state.processLog) || [];
-
+  const [processLog, setProcessLog] = useState([...prevProcessLog]);
   const [videos, setVideos] = useState([]);
   const [selected, setSelected] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [processLog, setProcessLog] = useState([...prevProcessLog]);
+  const [showModal, setShowModal] = useState(false);
+  const [progress, setProgress] = useState(0);
   const previewTimer = useRef(null);
 
+  // 영상 목록 불러오기
   useEffect(() => {
     const fetchVideos = async () => {
       if (TEST_MODE) {
@@ -31,71 +33,93 @@ const VideoSelectPage = () => {
           const res = await axios.get('/api/a4c/list');
           setVideos(res.data.videos);
         } catch (err) {
-          setProcessLog(logs => [...logs, "❌ 영상 목록 불러오기 실패"]);
+          alert('영상 목록 불러오기 실패');
         }
       }
     };
-
     fetchVideos();
 
     const handleOutsideClick = () => setPreview(null);
     document.addEventListener('click', handleOutsideClick);
     return () => document.removeEventListener('click', handleOutsideClick);
-    // eslint-disable-next-line
   }, []);
 
-  // 영상 선택(혹은 취소) 시 ProcessLog 수정
-  useEffect(() => {
-    if (selected) {
-      // 이미 추가되어 있으면 또 추가하지 않음
-      if (!processLog.includes('✅ A4C영상 선택 완료!')) {
-        setProcessLog(logs => [...logs, '✅ A4C영상 선택 완료!']);
-      }
-    } else {
-      // 선택 취소 시 마지막 문구만 삭제
-      setProcessLog(logs => {
-        if (logs.length && logs[logs.length - 1] === '✅ A4C영상 선택 완료!') {
-          return logs.slice(0, -1);
-        }
-        return logs;
-      });
-    }
-    // eslint-disable-next-line
-  }, [selected]);
-
+  // 3초 hover preview
   const handleHover = (filename) => {
     previewTimer.current = setTimeout(() => setPreview(filename), 3000);
   };
+  const cancelHover = () => clearTimeout(previewTimer.current);
 
-  const cancelHover = () => {
-    clearTimeout(previewTimer.current);
-  };
+  // 영상 선택/선택취소 (ProcessLog도 관리)
+  useEffect(() => {
+    if (selected) {
+      if (!processLog.includes('✅ A4C 영상 선택 완료')) setProcessLog((prev) => [...prev, '✅ A4C 영상 선택 완료']);
+    } else {
+      setProcessLog((prev) => prev.filter((l) => l !== '✅ A4C 영상 선택 완료'));
+    }
+  }, [selected]);
 
-  const handleSelect = (filename) => {
-    setSelected(filename === selected ? null : filename);
-    setPreview(null);
-  };
-
+  // 다음: segmentation 진행
   const handleNext = async () => {
-    try {
-      if (!TEST_MODE) {
-        // 백엔드에 선택 영상 전달
-        const res = await axios.post('/api/a4c/select', {
-          filename: selected,
-        });
+    setShowModal(true); // 팝업 오픈
+    setProgress(0);
+    let currLog = processLog.slice();
 
-        if (!res.data.success) {
-          setProcessLog((logs) => [...logs, "❌ 백엔드 선택 처리 실패"]);
-          alert('백엔드에서 선택 처리 실패');
-          return;
+    try {
+      // 1. Segmentation 진행중...
+      currLog.push('Segmentation 진행중...');
+      setProcessLog([...currLog]);
+      if (TEST_MODE) {
+        // Progress bar 0~100%
+        for (let i = 1; i <= 100; i += 10) {
+          await new Promise((res) => setTimeout(res, 100));
+          setProgress(i);
         }
+        currLog.push('Segmentation 완료!');
+        setProcessLog([...currLog]);
+
+        // 2. EF 계산중...
+        currLog.push('EF 계산중...');
+        setProcessLog([...currLog]);
+        for (let i = 0; i < 5; i++) {
+          await new Promise((res) => setTimeout(res, 200));
+        }
+        currLog.push('EF 계산 완료!');
+        setProcessLog([...currLog]);
+
+      } else {
+        // 실제 API 연동
+        // 선택된 영상명 전송, 백엔드 segmentation 요청
+        await axios.post('/api/a4c/select', { filename: selected });
+        // segmentation 진행 상황 가져오기, progress & log 상태 갱신
+        let done = false, percent = 0;
+        while (!done) {
+          const { data } = await axios.get('/api/segmentation/progress');
+          percent = data.progress; // 백엔드에서 {progress, message, step} 반환하도록 구현
+          setProgress(percent);
+          if (data.message && !currLog.includes(data.message)) {
+            currLog.push(data.message);
+            setProcessLog([...currLog]);
+          }
+          done = percent >= 100;
+          await new Promise((res) => setTimeout(res, 400));
+        }
+        currLog.push('Segmentation 완료!');
+        setProcessLog([...currLog]);
+
+        // EF 계산 시작/완료
+        currLog.push('EF 계산중...');
+        setProcessLog([...currLog]);
+        await axios.get('/api/segmentation/ef');
+        currLog.push('EF 계산 완료!');
+        setProcessLog([...currLog]);
       }
 
-      // 다음 페이지 이동 (processLog도 함께 넘김)
-      navigate('/result', { state: { processLog } });
+      // 3. 결과페이지로 자동 이동
+      setTimeout(() => navigate('/result', { state: { processLog: currLog } }), 600);
     } catch (err) {
-      setProcessLog((logs) => [...logs, "❌ 서버 오류로 선택 전송 실패"]);
-      alert('서버 오류로 선택 전송 실패');
+      setShowModal(false);
+      alert('Segmentation 실패! ' + (err.message || ''));
     }
   };
 
@@ -103,7 +127,6 @@ const VideoSelectPage = () => {
     <div className="video-select-container">
       <h1 className="title">Video Select</h1>
       <p className="subtitle">아래 분류된 A4C 영상 중 원하시는 영상을 하나만 선택해주세요.</p>
-
       <div className="video-grid">
         {videos.map((video, idx) => (
           <div
@@ -113,7 +136,8 @@ const VideoSelectPage = () => {
             onMouseLeave={cancelHover}
             onClick={(e) => {
               e.stopPropagation();
-              handleSelect(video);
+              setSelected(video === selected ? null : video);
+              setPreview(null);
             }}
           >
             <div className="file-name">📄 {video}</div>
@@ -121,24 +145,26 @@ const VideoSelectPage = () => {
           </div>
         ))}
       </div>
-
-      <button className="next-btn" disabled={!selected} onClick={handleNext}>다음</button>
-
       {preview && (
-        <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="preview-modal" onClick={e => e.stopPropagation()}>
           <video src={`./videos/${preview}`} controls autoPlay loop />
         </div>
       )}
 
-      {/* Process Log 그대로 표시 */}
+      {/* Process Log */}
       <div className="process-log">
         <h3>Process Log</h3>
         <ul>
-          {processLog.map((log, i) => (
-            <li key={i}>{log}</li>
+          {processLog.map((log, idx) => (
+            <li key={idx}>{log}</li>
           ))}
         </ul>
       </div>
+
+      {/* 다음 버튼 */}
+      <button className="next-btn" disabled={!selected} onClick={handleNext}>다음</button>
+      {/* Segmentation 진행중 모달 */}
+      {showModal && <SegmentationPopup progress={progress} />}
     </div>
   );
 };

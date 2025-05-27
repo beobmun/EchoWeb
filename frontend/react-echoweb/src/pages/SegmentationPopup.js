@@ -1,6 +1,6 @@
 // SegmentationProgressModal.jsx
 import React from 'react';
-import './SegmentationProgressModal.css';
+import './SegmentationPopup.css';
 
 const SegmentationProgressModal = ({ progress }) => {
   return (
