@@ -208,7 +208,7 @@ const UploadPage = () => {
           </div>
         )}
 
-        <button className="next-btn" disabled={!isDone} onClick={() => navigate('/select')}>다음</button>
+        <button className="next-btn" disabled={!isDone} onClick={() => navigate('/select', { state: { processLog } })}>다음</button>
       </div>
 
       <div className="process-log">

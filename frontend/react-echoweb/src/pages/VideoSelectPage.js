@@ -1,6 +1,6 @@
 // 5p VideoSelectPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './VideoSelectPage.css';
 
@@ -8,10 +8,14 @@ const VideoSelectPage = () => {
   const TEST_MODE = true;
 
   const navigate = useNavigate();
+  const location = useLocation();
+  // 4p에서 넘어온 processLog(배열) props
+  const prevProcessLog = (location.state && location.state.processLog) || [];
+
   const [videos, setVideos] = useState([]);
   const [selected, setSelected] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [processLog, setProcessLog] = useState(["A4C 영상 분류 및 추출 완료"]); // 첫 log
+  const [processLog, setProcessLog] = useState([...prevProcessLog]);
   const previewTimer = useRef(null);
 
   useEffect(() => {
@@ -37,7 +41,27 @@ const VideoSelectPage = () => {
     const handleOutsideClick = () => setPreview(null);
     document.addEventListener('click', handleOutsideClick);
     return () => document.removeEventListener('click', handleOutsideClick);
+    // eslint-disable-next-line
   }, []);
+
+  // 영상 선택(혹은 취소) 시 ProcessLog 수정
+  useEffect(() => {
+    if (selected) {
+      // 이미 추가되어 있으면 또 추가하지 않음
+      if (!processLog.includes('✅ A4C영상 선택 완료!')) {
+        setProcessLog(logs => [...logs, '✅ A4C영상 선택 완료!']);
+      }
+    } else {
+      // 선택 취소 시 마지막 문구만 삭제
+      setProcessLog(logs => {
+        if (logs.length && logs[logs.length - 1] === '✅ A4C영상 선택 완료!') {
+          return logs.slice(0, -1);
+        }
+        return logs;
+      });
+    }
+    // eslint-disable-next-line
+  }, [selected]);
 
   const handleHover = (filename) => {
     previewTimer.current = setTimeout(() => setPreview(filename), 3000);
@@ -48,10 +72,6 @@ const VideoSelectPage = () => {
   };
 
   const handleSelect = (filename) => {
-    // 선택 완료 시 log 추가 (이미 선택된 영상이면 log를 추가하지 않음)
-    if (selected !== filename) {
-      setProcessLog((logs) => [...logs, "✅ A4C영상 선택 완료!"]);
-    }
     setSelected(filename === selected ? null : filename);
     setPreview(null);
   };
@@ -59,6 +79,7 @@ const VideoSelectPage = () => {
   const handleNext = async () => {
     try {
       if (!TEST_MODE) {
+        // 백엔드에 선택 영상 전달
         const res = await axios.post('/api/a4c/select', {
           filename: selected,
         });
@@ -70,8 +91,8 @@ const VideoSelectPage = () => {
         }
       }
 
-      setProcessLog((logs) => [...logs, "A4C 영상 선택 결과 서버 전송 완료"]);
-      navigate('/result');
+      // 다음 페이지 이동 (processLog도 함께 넘김)
+      navigate('/result', { state: { processLog } });
     } catch (err) {
       setProcessLog((logs) => [...logs, "❌ 서버 오류로 선택 전송 실패"]);
       alert('서버 오류로 선택 전송 실패');
@@ -101,15 +122,15 @@ const VideoSelectPage = () => {
         ))}
       </div>
 
+      <button className="next-btn" disabled={!selected} onClick={handleNext}>다음</button>
+
       {preview && (
         <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
           <video src={`./videos/${preview}`} controls autoPlay loop />
         </div>
       )}
 
-      <button className="next-btn" disabled={!selected} onClick={handleNext}>다음</button>
-
-      {/* Process Log */}
+      {/* Process Log 그대로 표시 */}
       <div className="process-log">
         <h3>Process Log</h3>
         <ul>
