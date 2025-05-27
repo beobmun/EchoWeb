@@ -7,16 +7,18 @@ import SignupPage from './pages/SignupPage';
 import SignupSuccessPage from './pages/SignupSuccessPage';
 import UploadPage from './pages/UploadPage';
 import VideoSelectPage from './pages/VideoSelectPage';
+import ResultPage from './pages/ResultPage';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/signup-success" element={<SignupSuccessPage />} /> */}
+        <Route path="/signup-success" element={<SignupSuccessPage />} />
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/select" element={<VideoSelectPage />} />
+        <Route path="/result" element={<ResultPage />} />
       </Routes>
     </Router>
   );

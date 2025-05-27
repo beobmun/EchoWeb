@@ -184,8 +184,8 @@ const UploadPage = () => {
 
     setTimeout(() => {
       setShowSegPopup(false);
-      navigate('/result');
-    }, 700);
+      navigate('/result', { state : { processLog } });
+    }, 600);
   };
 
   // 다음 버튼 클릭 핸들러 (zip/a4c 별 분기)
