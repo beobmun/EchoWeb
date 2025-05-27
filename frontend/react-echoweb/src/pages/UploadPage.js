@@ -6,7 +6,7 @@ import './UploadPage.css';
 
 const UploadPage = () => {
   const TEST_MODE = true;
-  const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: false };
+  const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: true };
 
   const location = useLocation();
   const fromRetry = location.state?.fromRetry;
@@ -208,7 +208,7 @@ const UploadPage = () => {
           </div>
         )}
 
-        <button className="next-btn" disabled={!isDone} onClick={() => navigate('/result')}>다음</button>
+        <button className="next-btn" disabled={!isDone} onClick={() => navigate('/select')}>다음</button>
       </div>
 
       <div className="process-log">
