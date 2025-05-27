@@ -2,10 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import SegmentationPopup from './SegmentationPopup'; // 추가!
 import './UploadPage.css';
 
 const UploadPage = () => {
-  // 🔹 테스트/실서비스 분기
   const TEST_MODE = true;
   const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: true };
 
@@ -14,39 +14,35 @@ const UploadPage = () => {
   const fileInputRef = useRef(null);
 
   const [file, setFile] = useState(null);
-  const [uploadType, setUploadType] = useState('zip'); // 'zip' or 'a4c'
+  const [uploadType, setUploadType] = useState('zip');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const processLogRef = useRef([]);
   const [processLog, setProcessLog] = useState([]);
   const [status, setStatus] = useState({ upload: null, unzip: null, classify: null });
   const [isDone, setIsDone] = useState(false);
   const [showHomeButton, setShowHomeButton] = useState(false);
   const [triggerReset, setTriggerReset] = useState(false);
 
-  // Segmentation popup state
+  // Segmentation Modal
   const [showSegPopup, setShowSegPopup] = useState(false);
   const [segProgress, setSegProgress] = useState(0);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (fromRetry || triggerReset) {
-      resetState();
-    }
+    if (fromRetry || triggerReset) resetState();
     // eslint-disable-next-line
   }, [fromRetry, triggerReset]);
 
   useEffect(() => {
-    if (file && uploadProgress === 0) {
-      autoUpload();
-    }
+    if (file && uploadProgress === 0) autoUpload();
     // eslint-disable-next-line
   }, [file]);
 
-  // 파일 선택/드래그 드롭 핸들러
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      setFile(null); // 동일 파일 반복 업로드 위해
+      setFile(null);
       setTimeout(() => {
         resetState();
         setFile(selectedFile);
@@ -65,7 +61,6 @@ const UploadPage = () => {
     }
   };
 
-  // 상태 초기화
   const resetState = () => {
     setIsDone(false);
     setProcessLog([]);
@@ -79,7 +74,7 @@ const UploadPage = () => {
     setFile(null);
   };
 
-  // 파일 업로드/판별/분류 등 API 연동 또는 테스트 로직
+  // 파일 업로드 & 판별/분류
   const autoUpload = async () => {
     setProcessLog((prev) => [...prev, '업로드 중...']);
     setStatus((prev) => ({ ...prev, upload: 'loading' }));
@@ -95,6 +90,7 @@ const UploadPage = () => {
         setStatus((prev) => ({ ...prev, upload: 'success' }));
         setProcessLog((prev) => [...prev, '✅ 업로드 완료 (테스트 모드)']);
       } else {
+        // 실제 업로드 API
         const res = await axios.post('/api/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (progressEvent) => {
@@ -107,7 +103,7 @@ const UploadPage = () => {
         setProcessLog((prev) => [...prev, `✅ 업로드 완료 (ID: ${upload_id})`]);
       }
 
-      // ZIP 업로드와 A4C 직접 업로드 분기
+      // 업로드 방식 분기
       if (uploadType === 'zip') {
         setProcessLog((prev) => [...prev, '압축 해제 중...']);
         if (TEST_MODE) {
@@ -138,7 +134,7 @@ const UploadPage = () => {
           } else throw new Error('A4C 추출 실패');
         }
       } else {
-        // A4C 영상 직접 업로드 - 판별만 진행
+        // A4C 영상 직접 업로드
         setProcessLog((prev) => [...prev, 'A4C 판별 중...']);
         if (TEST_MODE) {
           await new Promise((res) => setTimeout(res, 900));
@@ -165,7 +161,11 @@ const UploadPage = () => {
     }
   };
 
-  // 세그멘테이션 팝업 띄우고, 진행 bar/로그 추가 → 완료시 result로 이동
+  useEffect(() => {
+  processLogRef.current = processLog;
+}, [processLog]);
+
+  // --- Segmentation 진행 (SegmentationProgressModal 사용) ---
   const startSegmentation = async () => {
     setShowSegPopup(true);
     setSegProgress(0);
@@ -173,7 +173,7 @@ const UploadPage = () => {
     setProcessLog((prev) => [...prev, 'Segmentation 진행중...']);
     for (let i = 0; i <= 100; i += 8) {
       setSegProgress(i);
-      await new Promise((res) => setTimeout(res, 90));
+      await new Promise((res) => setTimeout(res, 80));
     }
     setSegProgress(100);
     setProcessLog((prev) => [...prev, '✅ Segmentation 완료!']);
@@ -184,24 +184,19 @@ const UploadPage = () => {
 
     setTimeout(() => {
       setShowSegPopup(false);
-      navigate('/result', { state : { processLog } });
-    }, 600);
+      navigate('/result', { state: { processLog : processLogRef.current } });
+    }, 400);
   };
 
-  // 다음 버튼 클릭 핸들러 (zip/a4c 별 분기)
+  // 다음 버튼
   const handleNext = () => {
-    // zip은 /select로, a4c는 segmentation 진행
     if (uploadType === 'zip') {
-      // ZIP파일 → 분류(5p)로 이동(이동시 로그도 전달)
       navigate('/select', { state: { processLog } });
     } else {
-      // A4C영상 직접 업로드 → segmentation 바로 시작
+      // A4C 영상 직접 업로드는 segmentation 바로 시작
       startSegmentation();
     }
   };
-
-  // 팝업 오버레이에서 이벤트 전파 방지
-  const stopPropagation = (e) => e.stopPropagation();
 
   return (
     <div className="upload-container">
@@ -242,36 +237,10 @@ const UploadPage = () => {
             <span>{uploadProgress}%</span>
           </div>
         )}
-
         <button className="next-btn" disabled={!isDone} onClick={handleNext}>다음</button>
       </div>
-
-      {/* --- Segmentation 팝업 : 진행 bar만 보여주기 --- */}
-      {showSegPopup && (
-        <div className="popup-overlay" onClick={stopPropagation}>
-          <div className="popup-content" onClick={stopPropagation}>
-            <h1 style={{ fontSize: 42, fontWeight: 800, marginBottom: 15 }}>Segmentation 진행중...</h1>
-            <p style={{ color: '#aaa' }}>segmentation이 진행중입니다. 시간이 소요될 수 있으니 잠시만 기다려 주십시오.</p>
-            <div style={{ margin: '40px 0 16px' }}>
-              <div style={{ background: '#eaeaea', borderRadius: 12, height: 20, width: 420, position: 'relative' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${segProgress}%`,
-                  background: '#5073ec',
-                  borderRadius: 12,
-                  transition: 'width 0.2s',
-                  position: 'absolute', left: 0, top: 0
-                }} />
-                <span style={{
-                  position: 'absolute', right: 20, top: '2px', color: '#222', fontWeight: 600, fontSize: 17
-                }}>{segProgress}%</span>
-              </div>
-            </div>
-            {/* 여기엔 로그 X! */}
-          </div>
-        </div>
-      )}
-
+      {/* === SegmentationProgressModal만 보여줌 === */}
+      {showSegPopup && <SegmentationPopup progress={segProgress} />}
       {/* --- Process Log --- */}
       <div className="process-log">
         <h3>Process Log</h3>

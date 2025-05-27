@@ -2,7 +2,7 @@
 import React from 'react';
 import './SegmentationPopup.css';
 
-const SegmentationProgressModal = ({ progress }) => {
+const SegmentationPopup = ({ progress }) => {
   return (
     <div className="seg-modal-overlay">
       <div className="seg-modal-content">
@@ -22,4 +22,4 @@ const SegmentationProgressModal = ({ progress }) => {
   );
 };
 
-export default SegmentationProgressModal;
+export default SegmentationPopup;
