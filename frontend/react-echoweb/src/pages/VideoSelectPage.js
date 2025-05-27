@@ -33,7 +33,7 @@ const VideoSelectPage = () => {
           const res = await axios.get('/api/a4c/list');
           setVideos(res.data.videos);
         } catch (err) {
-          alert('영상 목록 불러오기 실패');
+          alert('❌ 영상 목록 불러오기 실패');
         }
       }
     };
@@ -53,9 +53,9 @@ const VideoSelectPage = () => {
   // 영상 선택/선택취소 (ProcessLog도 관리)
   useEffect(() => {
     if (selected) {
-      if (!processLog.includes('✅ A4C 영상 선택 완료')) setProcessLog((prev) => [...prev, '✅ A4C 영상 선택 완료']);
+      if (!processLog.includes('✅ A4C 영상 선택 완료!')) setProcessLog((prev) => [...prev, '✅ A4C 영상 선택 완료!']);
     } else {
-      setProcessLog((prev) => prev.filter((l) => l !== '✅ A4C 영상 선택 완료'));
+      setProcessLog((prev) => prev.filter((l) => l !== '✅ A4C 영상 선택 완료!'));
     }
   }, [selected]);
 
@@ -75,7 +75,7 @@ const VideoSelectPage = () => {
           await new Promise((res) => setTimeout(res, 100));
           setProgress(i);
         }
-        currLog.push('Segmentation 완료!');
+        currLog.push('✅ Segmentation 완료!');
         setProcessLog([...currLog]);
 
         // 2. EF 계산중...
@@ -84,7 +84,7 @@ const VideoSelectPage = () => {
         for (let i = 0; i < 5; i++) {
           await new Promise((res) => setTimeout(res, 200));
         }
-        currLog.push('EF 계산 완료!');
+        currLog.push('✅ EF 계산 완료!');
         setProcessLog([...currLog]);
 
       } else {
@@ -104,14 +104,14 @@ const VideoSelectPage = () => {
           done = percent >= 100;
           await new Promise((res) => setTimeout(res, 400));
         }
-        currLog.push('Segmentation 완료!');
+        currLog.push('✅ Segmentation 완료!');
         setProcessLog([...currLog]);
 
         // EF 계산 시작/완료
         currLog.push('EF 계산중...');
         setProcessLog([...currLog]);
         await axios.get('/api/segmentation/ef');
-        currLog.push('EF 계산 완료!');
+        currLog.push('✅ EF 계산 완료!');
         setProcessLog([...currLog]);
       }
 
@@ -119,7 +119,7 @@ const VideoSelectPage = () => {
       setTimeout(() => navigate('/result', { state: { processLog: currLog } }), 600);
     } catch (err) {
       setShowModal(false);
-      alert('Segmentation 실패! ' + (err.message || ''));
+      alert('❌ Segmentation 실패 ' + (err.message || ''));
     }
   };
 
@@ -145,6 +145,10 @@ const VideoSelectPage = () => {
           </div>
         ))}
       </div>
+      
+      {/* 다음 버튼 */}
+      <button className="next-btn" disabled={!selected} onClick={handleNext}>다음</button>
+
       {preview && (
         <div className="preview-modal" onClick={e => e.stopPropagation()}>
           <video src={`./videos/${preview}`} controls autoPlay loop />
@@ -161,8 +165,6 @@ const VideoSelectPage = () => {
         </ul>
       </div>
 
-      {/* 다음 버튼 */}
-      <button className="next-btn" disabled={!selected} onClick={handleNext}>다음</button>
       {/* Segmentation 진행중 모달 */}
       {showModal && <SegmentationPopup progress={progress} />}
     </div>
