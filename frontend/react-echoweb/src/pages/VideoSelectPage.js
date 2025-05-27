@@ -5,30 +5,29 @@ import axios from 'axios';
 import './VideoSelectPage.css';
 
 const VideoSelectPage = () => {
-  const TEST_MODE = true; // ✅ true: 프론트 단독 테스트 / false: 백엔드 API 연동
+  const TEST_MODE = true;
 
   const navigate = useNavigate();
   const [videos, setVideos] = useState([]);
   const [selected, setSelected] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [processLog, setProcessLog] = useState(["A4C 영상 분류 및 추출 완료"]); // 첫 log
   const previewTimer = useRef(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
       if (TEST_MODE) {
-        // ✅ 테스트용 A4C 영상 리스트
         setVideos([
           'A4C_001.mp4', 'A4C_002.mp4', 'A4C_003.mp4',
           'A4C_004.mp4', 'A4C_005.mp4', 'A4C_006.mp4',
           'A4C_007.mp4', 'A4C_008.mp4', 'A4C_009.mp4',
         ]);
       } else {
-        // ✅ 실제 백엔드에서 A4C 영상 목록 불러오기 API
         try {
           const res = await axios.get('/api/a4c/list');
           setVideos(res.data.videos);
         } catch (err) {
-          console.error('영상 목록 불러오기 실패:', err);
+          setProcessLog(logs => [...logs, "❌ 영상 목록 불러오기 실패"]);
         }
       }
     };
@@ -49,6 +48,10 @@ const VideoSelectPage = () => {
   };
 
   const handleSelect = (filename) => {
+    // 선택 완료 시 log 추가 (이미 선택된 영상이면 log를 추가하지 않음)
+    if (selected !== filename) {
+      setProcessLog((logs) => [...logs, "✅ A4C영상 선택 완료!"]);
+    }
     setSelected(filename === selected ? null : filename);
     setPreview(null);
   };
@@ -56,21 +59,21 @@ const VideoSelectPage = () => {
   const handleNext = async () => {
     try {
       if (!TEST_MODE) {
-        // ✅ 선택된 영상 파일명을 백엔드로 전송
         const res = await axios.post('/api/a4c/select', {
           filename: selected,
         });
 
         if (!res.data.success) {
+          setProcessLog((logs) => [...logs, "❌ 백엔드 선택 처리 실패"]);
           alert('백엔드에서 선택 처리 실패');
           return;
         }
       }
 
-      console.log('선택된 영상:', selected); // 테스트용 출력
+      setProcessLog((logs) => [...logs, "A4C 영상 선택 결과 서버 전송 완료"]);
       navigate('/result');
     } catch (err) {
-      console.error(err);
+      setProcessLog((logs) => [...logs, "❌ 서버 오류로 선택 전송 실패"]);
       alert('서버 오류로 선택 전송 실패');
     }
   };
@@ -105,6 +108,16 @@ const VideoSelectPage = () => {
       )}
 
       <button className="next-btn" disabled={!selected} onClick={handleNext}>다음</button>
+
+      {/* Process Log */}
+      <div className="process-log">
+        <h3>Process Log</h3>
+        <ul>
+          {processLog.map((log, i) => (
+            <li key={i}>{log}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };
