@@ -5,7 +5,7 @@ import axios from 'axios'; // 🔹 axios 추가
 import { useLocation } from 'react-router-dom';
 import './ResultPage.css';
 
-const TEST_MODE = false;
+const TEST_MODE = true;
 
 const ResultPage = () => {
   const location = useLocation();
