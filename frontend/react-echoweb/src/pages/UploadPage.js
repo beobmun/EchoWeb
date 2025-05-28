@@ -22,6 +22,9 @@ const UploadPage = () => {
   const [isDone, setIsDone] = useState(false);
   const [showHomeButton, setShowHomeButton] = useState(false);
   const [triggerReset, setTriggerReset] = useState(false);
+  const [unzipFiles, setUnzipFiles] = useState(null); // 압축해제 파일들 상태 추가
+  const [fileList, setFileList] = useState([]);
+
 
   // Segmentation Modal
   const [showSegPopup, setShowSegPopup] = useState(false);
@@ -117,9 +120,10 @@ const UploadPage = () => {
             setProcessLog((prev) => [...prev, '✅ 압축 해제 완료 (테스트 모드)']);
           } else throw new Error('압축 해제 실패 (테스트 모드)');
         } else {
-          const unzipRes = await axios.post('/api/unzip', { upload_id: 'UPLOAD_ID_SAMPLE' });
-          if (unzipRes.data.success) {
-            setStatus((prev) => ({ ...prev, unzip: 'success' }));
+          const unzipRes = await axios.post('/api/upload/zip', { upload_id: 'UPLOAD_ID_SAMPLE' });
+          if (unzipRes.data.result) {
+            setStatus((prev) => ({ ...prev, result: true, unzip_files : unzipRes.data.unzip_files }));
+            setUnzipFiles(unzipRes.data.unzip_files);
             setProcessLog((prev) => [...prev, '✅ 압축 해제 완료']);
           } else throw new Error('압축 해제 실패');
         }
@@ -131,9 +135,10 @@ const UploadPage = () => {
             setProcessLog((prev) => [...prev, '✅ A4C 추출 완료 (테스트 모드)']);
           } else throw new Error('A4C 추출 실패 (테스트 모드)');
         } else {
-          const classifyRes = await axios.post('/api/classify-a4c', { upload_id: 'UPLOAD_ID_SAMPLE' });
-          if (classifyRes.data.success) {
-            setStatus((prev) => ({ ...prev, classify: 'success' }));
+          const classifyRes = await axios.post('/api/run/classification', { unzip_files : unzipFiles });
+          if (classifyRes.data.result) {
+            setStatus((prev) => ({ ...prev, result: true }));
+            setFileList(classifyRes.data.file_path);  // ⬅️ 여기서 file_path를 상태에 저장
             setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
           } else throw new Error('A4C 추출 실패');
         }
@@ -241,7 +246,7 @@ const UploadPage = () => {
   // 다음 버튼
   const handleNext = () => {
     if (uploadType === 'zip') {
-      navigate('/select', { state: { processLog } });
+      navigate('/select', { state: { processLog, fileList } });
     } else {
       // A4C 영상 직접 업로드는 segmentation 바로 시작
       startSegmentation();

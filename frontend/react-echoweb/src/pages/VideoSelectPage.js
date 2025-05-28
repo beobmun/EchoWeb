@@ -12,37 +12,27 @@ const VideoSelectPage = () => {
   const location = useLocation();
   const prevProcessLog = (location.state && location.state.processLog) || [];
   const [processLog, setProcessLog] = useState([...prevProcessLog]);
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState(location.state?.fileList ?? []);
   const [selected, setSelected] = useState(null);
   const [preview, setPreview] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [progress, setProgress] = useState(0);
   const previewTimer = useRef(null);
 
-  // 영상 목록 불러오기
+  // location.state.fileList가 바뀌면 업데이트
   useEffect(() => {
-    const fetchVideos = async () => {
-      if (TEST_MODE) {
-        setVideos([
-          'A4C_001.mp4', 'A4C_002.mp4', 'A4C_003.mp4',
-          'A4C_004.mp4', 'A4C_005.mp4', 'A4C_006.mp4',
-          'A4C_007.mp4', 'A4C_008.mp4', 'A4C_009.mp4',
-        ]);
-      } else {
-        try {
-          const res = await axios.get('/api/a4c/list');
-          setVideos(res.data.videos);
-        } catch (err) {
-          alert('❌ 영상 목록 불러오기 실패');
-        }
-      }
-    };
-    fetchVideos();
-
-    const handleOutsideClick = () => setPreview(null);
-    document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
-  }, []);
+    if (location.state?.fileList) {
+      setVideos(location.state.fileList);
+    } else if (TEST_MODE) {
+      setVideos([
+        'A4C_001.mp4', 'A4C_002.mp4', 'A4C_003.mp4',
+        'A4C_004.mp4', 'A4C_005.mp4', 'A4C_006.mp4',
+        'A4C_007.mp4', 'A4C_008.mp4', 'A4C_009.mp4',
+      ]);
+    }
+    // 👇 get은 사용하지 않음!
+    // else { axios.get... }
+  }, [location.state?.fileList]);
 
   // 3초 hover preview
   const handleHover = (filename) => {
