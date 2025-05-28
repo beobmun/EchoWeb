@@ -39,6 +39,10 @@ const UploadPage = () => {
     // eslint-disable-next-line
   }, [file]);
 
+  useEffect(() => {
+    processLogRef.current = processLog;
+  }, [processLog]);
+
   const handleFileSelect = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -161,31 +165,77 @@ const UploadPage = () => {
     }
   };
 
-  useEffect(() => {
-  processLogRef.current = processLog;
-}, [processLog]);
-
   // --- Segmentation 진행 (SegmentationProgressModal 사용) ---
   const startSegmentation = async () => {
     setShowSegPopup(true);
     setSegProgress(0);
-
     setProcessLog((prev) => [...prev, 'Segmentation 진행중...']);
-    for (let i = 0; i <= 100; i += 8) {
-      setSegProgress(i);
-      await new Promise((res) => setTimeout(res, 80));
+
+    if (TEST_MODE) {
+      // (테스트 시나리오) 프론트 단독 - fake 진행 bar
+      for (let i = 0; i <= 100; i += 8) {
+        setSegProgress(i);
+        await new Promise((res) => setTimeout(res, 80));
+      }
+      setSegProgress(100);
+      setProcessLog((prev) => [...prev, '✅ Segmentation 완료!']);
+
+      setProcessLog((prev) => [...prev, 'EF 계산중...']);
+      await new Promise((res) => setTimeout(res, 700));
+      setProcessLog((prev) => [...prev, '✅ EF 계산 완료!']);
+
+      setTimeout(() => {
+        setShowSegPopup(false);
+        navigate('/result', { state: { processLog: processLogRef.current } });
+      }, 400);
+    } else {
+      try {
+        // (API 백엔드 연동 시나리오)
+        // 1. segmentation 시작 요청 (예: POST /api/segment)
+        // 업로드한 파일 id 혹은 경로, 필요한 경우 백엔드에 전달
+        // 예시: const { uploadedFileId } = ...;
+
+        // Segmentation 진행 상태를 polling 또는 websocket으로 받아야 실제 진행률 구현이 가능.
+        // 여기선 polling 예시 (실제 API 설계에 따라 달라짐)
+        const segmentRes = await axios.post('/api/segment', {
+          // 예시: file_id: uploadedFileId
+        });
+
+        if (!segmentRes.data.success) throw new Error('Segmentation 실패');
+
+        // 진행률 받기(polling 예시, 실제 API에 따라 달라짐)
+        let progress = 0;
+        while (progress < 100) {
+          const { data } = await axios.get('/api/segment/progress', {
+            // params: { file_id: uploadedFileId }
+          });
+          progress = data.progress; // (예: 0~100)
+          setSegProgress(progress);
+          await new Promise((res) => setTimeout(res, 200)); // polling 간격
+        }
+        setSegProgress(100);
+        setProcessLog((prev) => [...prev, '✅ Segmentation 완료!']);
+
+        // EF 계산 요청
+        setProcessLog((prev) => [...prev, 'EF 계산중...']);
+        const efRes = await axios.post('/api/calculate-ef', {
+          // 예시: file_id: uploadedFileId
+        });
+        if (!efRes.data.success) throw new Error('EF 계산 실패');
+        setProcessLog((prev) => [...prev, '✅ EF 계산 완료!']);
+
+        setTimeout(() => {
+          setShowSegPopup(false);
+          // 반드시 최신 log를 넘겨야 함!
+          navigate('/result', { state: { processLog: processLogRef.current } });
+        }, 400);
+
+      } catch (err) {
+        setShowSegPopup(false);
+        setProcessLog((prev) => [...prev, '❌ Segmentation 실패 또는 EF 계산 실패']);
+        alert('서버 오류: ' + err.message);
+      }
     }
-    setSegProgress(100);
-    setProcessLog((prev) => [...prev, '✅ Segmentation 완료!']);
-
-    setProcessLog((prev) => [...prev, 'EF 계산중...']);
-    await new Promise((res) => setTimeout(res, 700));
-    setProcessLog((prev) => [...prev, '✅ EF 계산 완료!']);
-
-    setTimeout(() => {
-      setShowSegPopup(false);
-      navigate('/result', { state: { processLog : processLogRef.current } });
-    }, 400);
   };
 
   // 다음 버튼
