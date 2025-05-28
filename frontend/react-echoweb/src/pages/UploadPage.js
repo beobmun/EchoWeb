@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import SegmentationPopup from './SegmentationPopup'; // 추가!
 import './UploadPage.css';
 
-const TEST_MODE = true;
+const TEST_MODE = false;
 const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: true };
 
 const UploadPage = () => {
