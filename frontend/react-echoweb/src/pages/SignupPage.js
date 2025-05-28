@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './SignupPage.css';
-// import 'dotenv';
 
-// SERVER_IP = process.env.SERVER_IP;
+const TEST_MODE = false; // ✅ true면 테스트용, false면 실제 API 사용
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -59,7 +58,6 @@ const SignupPage = () => {
       setIsPwValid(true);
     }
 
-    // 비밀번호 변경 시 확인값도 다시 검사
     if (verifyPassword) {
       if (value === verifyPassword) {
         setVerifyMsg('비밀번호가 일치합니다.');
@@ -103,37 +101,38 @@ const SignupPage = () => {
     }
   };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
     if (!isEmailValid || !isPwValid || !isVerifyValid || !isUsernameValid) {
-        alert('입력 형식을 다시 확인해주세요.');
-        return;
+      alert('입력 형식을 다시 확인해주세요.');
+      return;
+    }
+
+    if (TEST_MODE) {
+      // ✅ 프론트 단독 테스트용: 바로 회원가입 성공 처리
+      console.log('TEST_MODE 회원가입:', { email, password, username });
+      navigate('/signup-success');
+      return;
     }
 
     try {
-        
-        const res = await axios.post('/api/auth/signup', {
+      // ✅ 실제 API 연동
+      const res = await axios.post('/api/auth/signup', {
         "email": email,
         "password": password,
         "username": username,
-        });
+      });
 
-        if (res.data.result === true) {
-            navigate('/signup-success');
-        } else {
-            alert(res.data.message || '회원가입 실패');
-        }
-        
-
-        // ✅ API 연결 전 테스트용
-        console.log('API 연결 전: 회원가입 데이터 준비 완료!');
-        navigate('/signup-success'); // 강제로 다음 페이지로 이동
+      if (res.data.result === true) {
+        navigate('/signup-success');
+      } else {
+        alert(res.data.message || '회원가입 실패');
+      }
     } catch (err) {
-        console.error(err);
-        alert('서버 오류로 회원가입에 실패했습니다.');
+      console.error(err);
+      alert('서버 오류로 회원가입에 실패했습니다.');
     }
-
   };
 
   return (
@@ -142,9 +141,7 @@ const SignupPage = () => {
         이미 회원이신가요?
         <button className="login-btn" onClick={() => navigate('/')}>로그인</button>
       </div>
-
       <h1 className="signup-title">Create a new account</h1>
-
       <form className="signup-box" onSubmit={handleSubmit}>
         <label>Email</label>
         <input type="text" placeholder="Email" value={email} onChange={handleEmailChange} />
