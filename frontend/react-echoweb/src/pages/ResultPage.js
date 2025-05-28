@@ -1,6 +1,7 @@
 // src/pages/ResultPage.jsx
 import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js'; // npm install react-plotly.js plotly.js
+import axios from 'axios'; // 🔹 axios 추가
 import { useLocation } from 'react-router-dom';
 import './ResultPage.css';
 
@@ -42,13 +43,13 @@ const ResultPage = () => {
         setEF(60);
       } else {
         // 실제 백엔드 연동
-        // const res = await axios.get('/api/result-data', { params: { ... } });
-        // setOrigVid(res.data.original_url);
-        // setSegVid(res.data.segmentation_url);
-        // setGraphData(res.data.graph);
-        // setEDV(res.data.edv);
-        // setESV(res.data.esv);
-        // setEF(res.data.ef);
+        const res = await axios.get('/api/result');
+        setOrigVid(res.data.original_url);
+        setSegVid(res.data.segmentation_url);
+        setGraphData(res.data.graph);
+        setEDV(res.data.edv);
+        setESV(res.data.esv);
+        setEF(res.data.ef);
       }
     };
     fetchData();

@@ -58,7 +58,7 @@ const LoginPage = () => {
       alert('로그인 성공!');
       navigate('/upload');
     } else {
-      alert(res.data.message || '로그인 실패');
+      alert(res.data.message || '회원 정보가 없거나 잘못된 비밀번호입니다.');
     }
 
   } catch (err) {
