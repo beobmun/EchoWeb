@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import SegmentationPopup from './SegmentationPopup'; // 추가!
 import './UploadPage.css';
 
-const TEST_MODE = false;
+const TEST_MODE = true;
 const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: true };
 
 const UploadPage = () => {
@@ -91,24 +91,24 @@ const UploadPage = () => {
     formData.append('type', uploadType);
 
     try {
-      // if (TEST_MODE) {
-      //   await new Promise((res) => setTimeout(res, 700));
-      //   setUploadProgress(100);
-      //   setStatus((prev) => ({ ...prev, upload: 'success' }));
-      //   setProcessLog((prev) => [...prev, '✅ 업로드 완료 (테스트 모드)']);
-      // } else {
-      //   // 실제 업로드 API
-      //   const res = await axios.post('/api/upload/', formData, {
-      //     headers: { 'Content-Type': 'multipart/form-data' },
-      //     onUploadProgress: (progressEvent) => {
-      //       const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-      //       setUploadProgress(percent);
-      //     },
-      //   });
-      //   const { upload_id } = res.data;
-      //   setStatus((prev) => ({ ...prev, upload: 'success' }));
-      //   setProcessLog((prev) => [...prev, `✅ 업로드 완료 (ID: ${upload_id})`]);
-      // }
+      if (TEST_MODE) {
+        await new Promise((res) => setTimeout(res, 700));
+        setUploadProgress(100);
+        setStatus((prev) => ({ ...prev, upload: 'success' }));
+        setProcessLog((prev) => [...prev, '✅ 업로드 완료 (테스트 모드)']);
+      } else {
+        // 실제 업로드 API
+        const res = await axios.post('/api/upload/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          },
+        });
+        const { upload_id } = res.data;
+        setStatus((prev) => ({ ...prev, upload: 'success' }));
+        setProcessLog((prev) => [...prev, `✅ 업로드 완료 (ID: ${upload_id})`]);
+      }
 
       // 업로드 방식 분기
       if (uploadType === 'zip') {
