@@ -24,3 +24,34 @@
 |  Database  |<img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">|
 |  AI Model  |<img src="https://img.shields.io/badge/pytorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white">||
 |  Infra  |<img src="https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/nginx-009639?style=for-the-badge&logo=nginx&logoColor=white">|
+
+## 📁 디렉토리 구조
+```
+EchoWeb/
+├── backend/
+│   └── model_weight/...
+│   └── utils/...
+│   └── Dockerfile
+│   └── main.py ...
+├── db/
+│   └── init.sql
+├── frontend/
+│   └── react-echoweb/
+│       ├── nginx/
+│       │   └── default.conf
+│       ├── public/...
+│       ├── src/
+│       │   └── pages/...
+│       │   └── App.js ...
+│       ├── Dockerfile
+│       ├── package-lock.json
+│       └── package.json
+└── docker-compose.yml
+```
+
+## 👨‍💻 Team Members
+|이름|역할|GitHub|
+|--|----|------|
+|조계진|프론트엔드 개발|https://github.com/CorinEz|
+|한법문|백엔드 개발|https://github.com/beobmun|
+
