@@ -5,14 +5,14 @@ import axios from 'axios';
 import SegmentationPopup from './SegmentationPopup';
 import './VideoSelectPage.css';
 
-const TEST_MODE = false; // true: 프론트 단독 테스트 / false: 백엔드 API 연동
+const TEST_MODE = true; // true: 프론트 단독 테스트 / false: 백엔드 API 연동
 
 const VideoSelectPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const prevProcessLog = (location.state && location.state.processLog) || [];
   const [processLog, setProcessLog] = useState([...prevProcessLog]);
-  const [videos, setVideos] = useState(location.state?.fileList ?? []);
+  const [videos, setVideos] = useState([]);
   const [selected, setSelected] = useState(null);
   const [preview, setPreview] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -21,18 +21,18 @@ const VideoSelectPage = () => {
 
   // location.state.fileList가 바뀌면 업데이트
   useEffect(() => {
-    if (location.state?.fileList) {
-      setVideos(location.state.fileList);
-    } else if (TEST_MODE) {
+    if (TEST_MODE) {
       setVideos([
         'A4C_001.mp4', 'A4C_002.mp4', 'A4C_003.mp4',
         'A4C_004.mp4', 'A4C_005.mp4', 'A4C_006.mp4',
         'A4C_007.mp4', 'A4C_008.mp4', 'A4C_009.mp4',
       ]);
+    } else {
+      // 실제 API 연동
+      setVideos(location.state?.fileList ?? []);
     }
-    // 👇 get은 사용하지 않음!
-    // else { axios.get... }
-  }, [location.state?.fileList]);
+    // ... (preview 초기화 등)
+  }, []);
 
   // 3초 hover preview
   const handleHover = (filename) => {

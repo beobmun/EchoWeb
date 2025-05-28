@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import SegmentationPopup from './SegmentationPopup'; // 추가!
 import './UploadPage.css';
 
-const TEST_MODE = false;
+const TEST_MODE = true;
 const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: true };
 
 const UploadPage = () => {
@@ -106,8 +106,6 @@ const UploadPage = () => {
           },
         });
         const { upload_id } = res.data;
-        setStatus((prev) => ({ ...prev, upload: 'success' }));
-        setProcessLog((prev) => [...prev, `✅ 업로드 완료 (ID: ${upload_id})`]);
       }
 
       // 업로드 방식 분기
