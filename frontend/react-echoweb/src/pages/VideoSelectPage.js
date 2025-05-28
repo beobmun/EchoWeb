@@ -5,7 +5,7 @@ import axios from 'axios';
 import SegmentationPopup from './SegmentationPopup';
 import './VideoSelectPage.css';
 
-const TEST_MODE = true; // true: 프론트 단독 테스트 / false: 백엔드 API 연동
+const TEST_MODE = false; // true: 프론트 단독 테스트 / false: 백엔드 API 연동
 
 const VideoSelectPage = () => {
   const navigate = useNavigate();
