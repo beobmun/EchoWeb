@@ -5,10 +5,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import SegmentationPopup from './SegmentationPopup'; // 추가!
 import './UploadPage.css';
 
-const UploadPage = () => {
-  const TEST_MODE = true;
-  const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: true };
+const TEST_MODE = true;
+const TEST_SCENARIO = { unzipSuccess: true, classifySuccess: true };
 
+const UploadPage = () => {
   const location = useLocation();
   const fromRetry = location.state?.fromRetry;
   const fileInputRef = useRef(null);
