@@ -90,11 +90,11 @@ const VideoSelectPage = () => {
       } else {
         // 실제 API 연동
         // 선택된 영상명 전송, 백엔드 segmentation 요청
-        await axios.post('/api/a4c/select', { filename: selected });
+        await axios.post('/api/a4c/segment', { filename: selected });
         // segmentation 진행 상황 가져오기, progress & log 상태 갱신
         let done = false, percent = 0;
         while (!done) {
-          const { data } = await axios.get('/api/segmentation/progress');
+          const { data } = await axios.get('/api/segment/progress');
           percent = data.progress; // 백엔드에서 {progress, message, step} 반환하도록 구현
           setProgress(percent);
           if (data.message && !currLog.includes(data.message)) {
