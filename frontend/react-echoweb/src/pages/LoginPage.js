@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // 🔹 axios 추가
 import './LoginPage.css';
 
-const LoginPage = () => {
+const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API 사용
+
+const LoginPage = () => {  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -37,8 +39,6 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
   e.preventDefault();
   if (!validate()) return;
-
-  const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API 사용
 
   if (TEST_MODE) {
     // ✅ 테스트 모드: 강제 로그인 성공 처리

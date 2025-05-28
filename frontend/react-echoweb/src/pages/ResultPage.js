@@ -5,8 +5,9 @@ import axios from 'axios'; // 🔹 axios 추가
 import { useLocation } from 'react-router-dom';
 import './ResultPage.css';
 
+const TEST_MODE = true;
+
 const ResultPage = () => {
-  const TEST_MODE = true;
   const location = useLocation();
   // 이전 페이지에서 받은 로그
   const processLog = location.state?.processLog || [];
