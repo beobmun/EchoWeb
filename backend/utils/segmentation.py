@@ -304,12 +304,12 @@ class Segmentation:
                                 self.unet_predictor.convertor.get_fps(),
                                 self.unet_predictor.convertor.get_width(),
                                 self.unet_predictor.convertor.get_height(),
-                                f"{output_path}/{video_path.split('/')[-1].split('.')[0]}_segmentation.mp4"))
+                                f"{output_path}/{video_path.split('/')[-1].split('.')[0]}/segmentation.mp4"))
         
         (self.calculator.calc_areas(self.unet_predictor.convertor.get_imgs(), 
                                     self.sam2_predictor.get_video_segment())
                         .find_es_ed(int(self.unet_predictor.convertor.get_fps()/4))
-                        .save_frames(output_path)
+                        .save_frames(f"{output_path}/{video_path.split('/')[-1].split('.')[0]}")
                         .calc_ef())
         
         return self
