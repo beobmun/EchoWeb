@@ -110,7 +110,7 @@ const VideoSelectPage = () => {
         // EF 계산 시작/완료
         currLog.push('EF 계산중...');
         setProcessLog([...currLog]);
-        await axios.get('/api/segmentation/ef');
+        await axios.post('/api/segmentation/ef');
         currLog.push('✅ EF 계산 완료!');
         setProcessLog([...currLog]);
       }
