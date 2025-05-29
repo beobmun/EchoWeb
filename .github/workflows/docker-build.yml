@@ -55,3 +55,46 @@ jobs:
 
       - name: Build backend Docker image
         run: docker build --no-cache -t echoweb-backend .
+  
+  docker-compose:
+    runs-on: ubuntu-latest
+    needs: [build-frontend, build-backend]
+    steps:
+      - name: Checkout all code
+        uses: actions/checkout@v3
+      
+      - name: Set up Docker Compose
+        run: docker compose version || true
+
+      - name: Create .env file for docker-compose
+        run: |
+          cat <<EOF > .env
+          MYSQL_ROOT_PASSWORD=testroot
+          MYSQL_DATABASE=testdb
+          MYSQL_USER=testuser
+          MYSQL_PASSWORD=testpass
+
+          DB_HOST=db
+          DB_PORT=3306
+          DB_USER=testuser
+          DB_PASSWORD=testpass
+          DB_NAME=testdb
+          EOF
+      
+      - name: Run Docker Compose
+        run: |
+          docker compose up -d --build
+          sleep 30  # Wait for services to start
+          docker ps
+      
+      - name: Run health check
+        run: |
+          curl -f http://localhost:4242 || (echo "Backend service is not healthy" && exit 1)
+          curl -f http://localhost:8042 || (echo "Frontend service is not healthy" && exit 1)
+      
+      - name: Clean up
+        run: |
+          docker compose down
+          docker system prune -af
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+          sudo apt-get clean
