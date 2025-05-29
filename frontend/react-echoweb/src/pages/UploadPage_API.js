@@ -117,7 +117,7 @@ const autoUpload = async () => {
       setProcessLog((prev) => [...prev, '✅ A4C 영상 확인됨']);
 
       setIsDone(true);
-      setSelectedFile(classifyRes.data.file_path[0]); // 단일 파일만
+      setSelectedFile(classifyRes.data.file_path); // ✅ 배열 아님! 그냥 str
     } else {
       throw new Error('지원하지 않는 파일 형식입니다.');
     }
