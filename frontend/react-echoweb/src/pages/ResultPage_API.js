@@ -31,7 +31,7 @@ const ResultPage = () => {
     const fetchResult = async () => {
       try {
         const res = await axios.get('/api/run/segmentation', {
-          params: { file_path: selectedFile }
+          params: { video_path: selectedFile }
         });
         // 예시 응답 구조에 맞게 저장
         setOrigVid(res.data.origin_video_path);
