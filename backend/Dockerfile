@@ -11,7 +11,7 @@ RUN sed -i 's|http://.*.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.l
     ln -sf /usr/bin/python3.10 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip && \
     pip install --upgrade pip && \
-    pip install -r requirements.txt && \
+    pip install --no-cache-dir -r requirements.txt && \
     chmod +x ./wait-for-mysql.sh && \
     cd / && git clone https://github.com/facebookresearch/sam2.git && cd sam2 && pip install -e . && cd /app 
 
