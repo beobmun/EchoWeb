@@ -24,21 +24,26 @@ const ResultPage = () => {
   // Hover Preview State
   const [hoverPreview, setHoverPreview] = useState(null);
 
+  const videoPath = typeof selectedFile === 'string'
+  ? selectedFile.replace(/"/g, '')
+  : selectedFile;
+
   // 데이터 불러오기
   useEffect(() => {
-    if (!selectedFile) return;
+    if (!videoPath) return;
 
     const fetchResult = async () => {
       try {
+        console.log("video_path for API:", videoPath, typeof videoPath);
         const res = await axios.get('/api/run/segmentation', {
-          params: { video_path: selectedFile }
+          params: { video_path: videoPath }
         });
         // 예시 응답 구조에 맞게 저장
         setOrigVid(res.data.origin_video_path);
         setSegVid(res.data.segmented_video_path);
         setAreas(res.data.areas || []);
         setEsPoints(res.data.es_points || []);
-        setEdPoints(res.data.ed_points || []);
+        setEdPoints(res.data.ed_points || []);  
         setEsFramePath(res.data.es_frames_path || []);
         setEdFramePath(res.data.ed_frames_path || []);
         setEF(res.data.ef);
@@ -47,8 +52,8 @@ const ResultPage = () => {
       }
     };
 
-    fetchResult();
-  }, [selectedFile]);
+    if (videoPath) fetchResult();
+  }, [videoPath]);
 
   // 차트 옵션/데이터 (ESV=빨간점, EDV=파란점, hover preview 연동)
   const makePlot = () => {
