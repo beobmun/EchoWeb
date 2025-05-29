@@ -38,7 +38,7 @@ async def upload_zip(file: UploadFile):
         # 파일이 zip 파일인지 확인
         if file.content_type != "application/zip":
             raise HTTPException(status_code=400, detail="Invalid file type. Only zip files are allowed.")
-        elif file.content_type == "application/x-zip-compressed":
+        elif file.content_type != "application/x-zip-compressed":
             raise HTTPException(status_code=400, detail="Invalid file type. Only zip files are allowed.")
         os.makedirs("temp", exist_ok=True)
         upload_path = f"temp/{file.filename}"
