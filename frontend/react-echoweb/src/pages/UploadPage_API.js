@@ -77,7 +77,7 @@ const autoUpload = async () => {
       // 1. zip 파일 업로드 및 압축해제
       const formData = new FormData();
       formData.append('file', file);
-      const zipRes = await axios.post('/upload/zip', formData, {
+      const zipRes = await axios.post('/api/upload/zip', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -90,7 +90,7 @@ const autoUpload = async () => {
 
       // 2. 분류(classification) - 여러 영상
       setProcessLog((prev) => [...prev, 'A4C 분류 중...']);
-      const classifyRes = await axios.post('/run/classification', { unzip_files: unzipFiles });
+      const classifyRes = await axios.post('/api/run/classification', { unzip_files: unzipFiles });
       if (!classifyRes.data.result) throw new Error('A4C 분류 실패');
       setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
 
@@ -100,7 +100,7 @@ const autoUpload = async () => {
       // 1. 영상 파일 업로드
       const formData = new FormData();
       formData.append('file', file);
-      const vidRes = await axios.post('/upload/video', formData, {
+      const vidRes = await axios.post('/api/upload/video', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -112,7 +112,7 @@ const autoUpload = async () => {
 
       // 2. A4C 판별 (단일 영상)
       setProcessLog((prev) => [...prev, 'A4C 판별 중...']);
-      const classifyRes = await axios.post('/run/classification', { unzip_files: [vidRes.data.file_path] });
+      const classifyRes = await axios.post('/api/run/classification', { unzip_files: [vidRes.data.file_path] });
       if (!classifyRes.data.result) throw new Error('A4C 판별 실패');
       setProcessLog((prev) => [...prev, '✅ A4C 영상 확인됨']);
 
