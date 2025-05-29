@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Free up disk space
+      run: |
+        docker system prune -af
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost
+        sudo apt-get clean
+        
     - name: Checkout Repository
       uses: actions/checkout@v3
 
