@@ -74,7 +74,7 @@ const autoUpload = async () => {
 
   try {
     if (isZip) {
-      // 1. zip 파일 업로드 및 압축해제
+      // (1) zip 파일 업로드 및 압축해제
       const formData = new FormData();
       formData.append('file', file);
       const zipRes = await axios.post('/api/upload/zip', formData, {
@@ -88,16 +88,16 @@ const autoUpload = async () => {
       setProcessLog((prev) => [...prev, '✅ 압축 해제 완료']);
       const unzipFiles = zipRes.data.unzip_files;
 
-      // 2. 분류(classification) - 여러 영상
+      // (2) 분류(classification) - 여러 영상
       setProcessLog((prev) => [...prev, 'A4C 분류 중...']);
-      const classifyRes = await axios.post('/api/run/classification', { unzip_files: unzipFiles });
+      const classifyRes = await axios.post('/api/run/classification', { file_path: unzipFiles });
       if (!classifyRes.data.result) throw new Error('A4C 분류 실패');
       setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
 
       setIsDone(true);
-      setFileList(classifyRes.data.file_path); // A4C 추출된 목록 (여러 개)
+      setFileList(classifyRes.data.file_path); // 여러 개
     } else if (isVideo) {
-      // 1. 영상 파일 업로드
+      // (1) 영상 파일 업로드만 진행!
       const formData = new FormData();
       formData.append('file', file);
       const vidRes = await axios.post('/api/upload/video', formData, {
@@ -110,14 +110,9 @@ const autoUpload = async () => {
       if (!vidRes.data.result) throw new Error('업로드 실패');
       setProcessLog((prev) => [...prev, '✅ 영상 업로드 완료']);
 
-      // 2. A4C 판별 (단일 영상)
-      setProcessLog((prev) => [...prev, 'A4C 판별 중...']);
-      const classifyRes = await axios.post('/api/run/classification', { unzip_files: [vidRes.data.file_path] });
-      if (!classifyRes.data.result) throw new Error('A4C 판별 실패');
-      setProcessLog((prev) => [...prev, '✅ A4C 영상 확인됨']);
-
       setIsDone(true);
-      setSelectedFile(classifyRes.data.file_path); // ✅ 배열 아님! 그냥 str
+      setSelectedFile(vidRes.data.file_path); // 바로 file_path(str) 저장!
+      // ⛔️ 아래 classification 관련 코드는 삭제!
     } else {
       throw new Error('지원하지 않는 파일 형식입니다.');
     }
