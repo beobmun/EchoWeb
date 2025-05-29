@@ -1,82 +1,120 @@
 // src/pages/ResultPage.jsx
 import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
+import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import './ResultPage.css';
 
 const ResultPage = () => {
   const location = useLocation();
-  // 4p/5p에서 받은 log, segmentation 결과
+  // 이전 페이지에서 받은 로그와 선택파일 경로
   const processLog = location.state?.processLog || [];
-  const seg = location.state?.segmentationResult;
+  const selectedFile = location.state?.selectedFile || '';
 
   // 상태값
-  const [previewImg, setPreviewImg] = useState(null);
+  const [origVid, setOrigVid] = useState('');
+  const [segVid, setSegVid] = useState('');
+  const [areas, setAreas] = useState([]);
+  const [esPoints, setEsPoints] = useState([]);
+  const [edPoints, setEdPoints] = useState([]);
+  const [esFramePath, setEsFramePath] = useState([]);
+  const [edFramePath, setEdFramePath] = useState([]);
+  const [ef, setEF] = useState(null);
 
-  // 필수 데이터 파싱
-  const originVideo = seg?.origin_video_path;
-  const segVideo = seg?.segmented_video_path;
-  const areaArr = seg?.areas || [];
-  const esIdxArr = seg?.es_points || []; // esv 프레임 인덱스 배열
-  const edIdxArr = seg?.ed_points || []; // edv 프레임 인덱스 배열
-  const esFrameImgArr = seg?.es_frames_path || []; // esv seg 프레임 이미지 배열
-  const edFrameImgArr = seg?.ed_frames_path || [];
-  const ef = seg?.ef;
+  // Hover Preview State
+  const [hoverPreview, setHoverPreview] = useState(null);
 
-  // 그래프용 x/y축
-  const xArr = Array.from({length: areaArr.length}, (_, i) => i);
-  const yArr = areaArr;
+  // 데이터 불러오기
+  useEffect(() => {
+    if (!selectedFile) return;
 
-  // Hover handler - 마우스 올리면 seg 프레임 미리보기
-  const handleEdvHover = (i) => setPreviewImg(edFrameImgArr[i]);
-  const handleEsvHover = (i) => setPreviewImg(esFrameImgArr[i]);
-  const handlePreviewOut = () => setPreviewImg(null);
+    const fetchResult = async () => {
+      try {
+        const res = await axios.get('/run/segmentation', {
+          params: { file_path: selectedFile }
+        });
+        // 예시 응답 구조에 맞게 저장
+        setOrigVid(res.data.origin_video_path);
+        setSegVid(res.data.segmented_video_path);
+        setAreas(res.data.areas || []);
+        setEsPoints(res.data.es_points || []);
+        setEdPoints(res.data.ed_points || []);
+        setEsFramePath(res.data.es_frames_path || []);
+        setEdFramePath(res.data.ed_frames_path || []);
+        setEF(res.data.ef);
+      } catch (err) {
+        alert('결과를 불러오지 못했습니다: ' + (err.message || ''));
+      }
+    };
 
-  // Plotly 그래프 데이터
-  const plotData = [
-    // 좌심실 area line
-    {
-      x: xArr,
-      y: yArr,
-      type: 'scatter',
-      mode: 'lines',
-      name: 'area',
-      line: { color: '#325adf', width: 2 },
-    },
-    // EDV 파란점 (여러 개 가능)
-    ...(edIdxArr || []).map((idx, i) => ({
-      x: [xArr[idx]], y: [yArr[idx]],
-      mode: 'markers',
-      marker: { color: 'blue', size: 14, symbol: 'circle' },
-      name: 'EDV',
-      customdata: [i],
-      hovertemplate: 'EDV (파란점): %{y}<extra></extra>',
-    })),
-    // ESV 빨간점 (여러 개 가능)
-    ...(esIdxArr || []).map((idx, i) => ({
-      x: [xArr[idx]], y: [yArr[idx]],
-      mode: 'markers',
-      marker: { color: 'red', size: 14, symbol: 'circle' },
-      name: 'ESV',
-      customdata: [i],
-      hovertemplate: 'ESV (빨간점): %{y}<extra></extra>',
-    })),
-  ];
+    fetchResult();
+  }, [selectedFile]);
 
-  // Plotly에서 hover event 활용: preview 띄우기
-  const handlePointHover = (event) => {
-    if (!event?.points?.length) return;
-    const point = event.points[0];
-    if (point.curveNumber === 1) { // 첫 번째 edv
-      const i = point.customdata[0];
-      handleEdvHover(i);
-    }
-    if (point.curveNumber === 2) { // 첫 번째 esv
-      const i = point.customdata[0];
-      handleEsvHover(i);
-    }
+  // 차트 옵션/데이터 (ESV=빨간점, EDV=파란점, hover preview 연동)
+  const makePlot = () => {
+    if (!areas.length) return null;
+    // frame 번호: 0 ~ areas.length-1
+    return (
+      <Plot
+        data={[
+          {
+            x: areas.map((_, idx) => idx),
+            y: areas,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'LV area',
+            line: { color: '#325adf', width: 2 }
+          },
+          // EDV(파란점, 여러개 가능)
+          ...(edPoints.length
+            ? [{
+                x: edPoints,
+                y: edPoints.map(i => areas[i]),
+                mode: 'markers',
+                marker: { color: 'blue', size: 12 },
+                name: 'EDV',
+                customdata: edFramePath,
+                hoverinfo: 'skip', // 기본 hover X (커스텀 프리뷰)
+              }]
+            : []),
+          // ESV(빨간점, 여러개 가능)
+          ...(esPoints.length
+            ? [{
+                x: esPoints,
+                y: esPoints.map(i => areas[i]),
+                mode: 'markers',
+                marker: { color: 'red', size: 12 },
+                name: 'ESV',
+                customdata: esFramePath,
+                hoverinfo: 'skip',
+              }]
+            : []),
+        ]}
+        layout={{
+          autosize: true,
+          width: 650, height: 300,
+          margin: { l: 50, r: 20, t: 40, b: 50 },
+          title: { text: 'Left Ventricular Area Variation', font: { size: 18 } },
+          xaxis: { title: 'Frame' },
+          yaxis: { title: 'Area', showgrid: false },
+          legend: { x: 0.92, y: 0.98, font: { size: 13 } }
+        }}
+        config={{ displayModeBar: false }}
+        style={{ borderRadius: 10 }}
+        // 점 hover 시 커스텀 preview 처리
+        onHover={(event) => {
+          // 마커에만 반응 (curveNumber: 1(EDV) or 2(ESV)), pointNumber: index in ed/esPoints
+          const p = event?.points?.[0];
+          if (!p) return;
+          const isEDV = p.curveNumber === 1;
+          const isESV = p.curveNumber === 2;
+          if (isEDV && edFramePath[p.pointIndex]) setHoverPreview({ type: 'EDV', img: edFramePath[p.pointIndex] });
+          if (isESV && esFramePath[p.pointIndex]) setHoverPreview({ type: 'ESV', img: esFramePath[p.pointIndex] });
+        }}
+        onUnhover={() => setHoverPreview(null)}
+      />
+    );
   };
-  const handlePointOut = () => setPreviewImg(null);
 
   return (
     <div className="result-container">
@@ -86,63 +124,31 @@ const ResultPage = () => {
           <div>
             <b style={{ fontSize: 22 }}>Original Video</b>
             <div className="imgbox">
-              {/* 영상이면 video, 이미지면 img */}
-              {
-                originVideo?.endsWith('.mp4')
-                  ? <video src={originVideo} controls style={{ width: "100%" }} />
-                  : <img src={originVideo} alt="Original" />
-              }
+              {origVid ? <video src={origVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
           <div style={{ marginTop: 20 }}>
-            <b style={{ fontSize: 22 }}>Segmented Video</b>
+            <b style={{ fontSize: 22 }}>Segmentation video</b>
             <div className="imgbox">
-              {
-                segVideo?.endsWith('.mp4')
-                  ? <video src={segVideo} controls style={{ width: "100%" }} />
-                  : <img src={segVideo} alt="Segmentation" />
-              }
+              {segVid ? <video src={segVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
         </div>
         <div className="result-right">
-          <div style={{ position: "relative" }}>
-            <Plot
-              data={plotData}
-              layout={{
-                autosize: true,
-                width: 650, height: 300,
-                margin: { l: 50, r: 20, t: 40, b: 50 },
-                title: { text: 'Left Ventricular Area Variation', font: { size: 18 } },
-                xaxis: { title: 'Frame' },
-                yaxis: { title: 'Area', showgrid: false },
-                legend: { x: 0.92, y: 0.98, font: { size: 13 } }
-              }}
-              config={{ displayModeBar: false }}
-              style={{ borderRadius: 10 }}
-              onHover={handlePointHover}
-              onUnhover={handlePointOut}
-            />
-            {/* Hover 시 프레임 이미지 미리보기 */}
-            {previewImg && (
-              <div className="preview-img-pop" style={{
-                position: "absolute", left: 320, top: 30, zIndex: 99,
-                background: "#fff", boxShadow: "0 2px 12px #0002", padding: 7, borderRadius: 8,
-              }}>
-                <img src={previewImg} alt="frame" width={170} />
-              </div>
-            )}
-          </div>
+          {makePlot()}
           <div className="ef-area">
             <div className="ef-label"><b>EF Calculated</b></div>
-            <div className="ef-value">{ef !== undefined && ef !== null
-              ? <b style={{ fontSize: 40, color: "#113be8" }}>{Math.round(ef)}%</b>
-              : '--'}
-            </div>
+            <div className="ef-value">{ef !== null ? <b style={{ fontSize: 40, color: "#113be8" }}>{Number(ef).toFixed(2)}%</b> : '--'}</div>
           </div>
         </div>
       </div>
-
+      {/* 점 hover 시 프레임 이미지 프리뷰 */}
+      {hoverPreview && (
+        <div className="frame-preview-modal">
+          <img src={hoverPreview.img} alt={`${hoverPreview.type} Frame Preview`} style={{ width: 320, borderRadius: 10, boxShadow: '0 2px 10px #8885' }} />
+          <div style={{ textAlign: 'center', marginTop: 5 }}>{hoverPreview.type} 프레임 preview</div>
+        </div>
+      )}
       {/* Process Log */}
       <div className="process-log" style={{ marginTop: 40 }}>
         <h3>Process Log</h3>
