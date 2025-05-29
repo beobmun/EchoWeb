@@ -242,12 +242,7 @@ class Calculator:
         return self
         
     def calc_ef(self):
-        def continuous(row):
-            for i in range(len(row)):
-                r = row[i]
-                if r == 0:
-                    return i
-            return len(row)
+        continuous = lambda row: next((i for i, r in enumerate(row) if r == 0), len(row))
         def calc_volume(mask):
             volume = 0
             for r in mask:
