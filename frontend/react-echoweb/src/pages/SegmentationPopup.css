@@ -1,0 +1,54 @@
+/* SegmentationProgressModal.css */
+.seg-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+.seg-modal-content {
+  background: #fff;
+  padding: 60px 30px 40px 30px;
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+  min-width: 500px;
+  text-align: center;
+  position: relative;
+}
+.seg-modal-content h1 {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.seg-desc {
+  font-size: 15px;
+  color: #ccc;
+  margin-bottom: 30px;
+}
+.seg-progress-bar {
+  width: 80%;
+  height: 22px;
+  background: #eaeaea;
+  border-radius: 11px;
+  margin: 0 auto 12px auto;
+  overflow: hidden;
+  position: relative;
+}
+.seg-progress {
+  background: #5683e9;
+  height: 100%;
+  border-radius: 11px 0 0 11px;
+  transition: width 0.5s cubic-bezier(.77,0,.18,1);
+}
+.seg-progress-label {
+  font-size: 18px;
+  font-weight: bold;
+  color: #888;
+  margin-bottom: 10px;
+  position: absolute;
+  right: 10%;
+  top: 55%;
+  transform: translateY(-50%);
+}

@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // 🔹 axios 추가
 import './LoginPage.css';
 
-const LoginPage = () => {
+const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API 사용
+
+const LoginPage = () => {  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -38,8 +40,6 @@ const LoginPage = () => {
   e.preventDefault();
   if (!validate()) return;
 
-  const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API 사용
-
   if (TEST_MODE) {
     // ✅ 테스트 모드: 강제 로그인 성공 처리
     alert('로그인 성공! (테스트용)');
@@ -49,7 +49,7 @@ const LoginPage = () => {
 
   // ✅ 실제 API 호출 모드
   try {
-    const res = await axios.post('/api/auth/', {
+    const res = await axios.post('/api/auth/signin', {
       email: email,
       password: password
     });
@@ -58,7 +58,7 @@ const LoginPage = () => {
       alert('로그인 성공!');
       navigate('/upload');
     } else {
-      alert(res.data.message || '로그인 실패');
+      alert(res.data.message || '회원 정보가 없거나 잘못된 비밀번호입니다.');
     }
 
   } catch (err) {

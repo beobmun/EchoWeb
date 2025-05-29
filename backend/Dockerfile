@@ -4,13 +4,14 @@ WORKDIR /app
 
 COPY . .
 
-RUN apt-get update && \
-    apt-get install -y python3.9 python3-pip python3-venv build-essential curl netcat-openbsd bash libgl1 libglib2.0-0 libsm6 libxext6 libxrender-dev git ffmpeg && \
+RUN sed -i 's|http://.*.ubuntu.com|http://mirror.kakao.com|g' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y python3.10 python3-pip python3-venv build-essential curl netcat-openbsd bash libgl1 libglib2.0-0 libsm6 libxext6 libxrender-dev git ffmpeg && \
     apt-get clean && \
-    ln -sf /usr/bin/python3.9 /usr/bin/python && \
+    ln -sf /usr/bin/python3.10 /usr/bin/python && \
     ln -sf /usr/bin/pip3 /usr/bin/pip && \
     pip install --upgrade pip && \
-    pip install -r requirements.txt && \
+    pip install --no-cache-dir -r requirements.txt && \
     chmod +x ./wait-for-mysql.sh && \
     cd / && git clone https://github.com/facebookresearch/sam2.git && cd sam2 && pip install -e . && cd /app 
 

@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SignupSuccessPage from './pages/SignupSuccessPage';
 import UploadPage from './pages/UploadPage';
+import VideoSelectPage from './pages/VideoSelectPage';
+import ResultPage from './pages/ResultPage';
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signup-success" element={<SignupSuccessPage />} />
         <Route path="/upload" element={<UploadPage />} />
+        <Route path="/select" element={<VideoSelectPage />} />
+        <Route path="/result" element={<ResultPage />} />
       </Routes>
     </Router>
   );
@@ -23,15 +27,15 @@ function App() {
 export default App;
 
 
-// // App.js
+// App.js
 // import React from 'react';
 // import { BrowserRouter } from 'react-router-dom';
-// import UploadPage from './pages/UploadPage';
+// import VideoSelectPage from './pages/VideoSelectPage';
 
 // function App() {
 //   return (
 //     <BrowserRouter>
-//       <UploadPage />
+//       <VideoSelectPage />
 //     </BrowserRouter>
 //   );
 // }

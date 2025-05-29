@@ -1,0 +1,97 @@
+/* VideoSelectPage.css */
+
+.video-select-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #555;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.video-card {
+  background-color: #f9f9f9;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 20px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.video-card:hover {
+  background-color: #eef3ff;
+}
+
+.video-card.selected {
+  border-color: #3455f3;
+  background-color: #e5ecff;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 10px;
+  word-break: break-all;
+}
+
+.play-icon {
+  font-size: 24px;
+  color: #888;
+  margin-top: 5px;
+}
+
+.preview-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.75);
+  padding: 20px;
+  z-index: 999;
+  border-radius: 10px;
+}
+
+.preview-modal video {
+  max-width: 600px;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.next-btn {
+  background-color: #ccc;
+  color: white;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  float: right;
+  cursor: not-allowed;
+  transition: background-color 0.3s ease;
+}
+
+.next-btn:not(:disabled) {
+  background-color: #3455f3;
+  cursor: pointer;
+}
