@@ -90,12 +90,12 @@ const autoUpload = async () => {
 
       // (2) 분류(classification) - 여러 영상
       setProcessLog((prev) => [...prev, 'A4C 분류 중...']);
-      const classifyRes = await axios.post('/api/run/classification', { file_path: unzipFiles });
+      const classifyRes = await axios.post('/api/run/classification', { video_paths: unzipFiles });
       if (!classifyRes.data.result) throw new Error('A4C 분류 실패');
       setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
 
       setIsDone(true);
-      setFileList(classifyRes.data.file_path); // 여러 개
+      setFileList(classifyRes.data.video_paths); // 여러 개
     } else if (isVideo) {
       // (1) 영상 파일 업로드만 진행!
       const formData = new FormData();
@@ -111,7 +111,7 @@ const autoUpload = async () => {
       setProcessLog((prev) => [...prev, '✅ 영상 업로드 완료']);
 
       setIsDone(true);
-      setSelectedFile(vidRes.data.file_path); // 바로 file_path(str) 저장!
+      setSelectedFile(vidRes.data.video_path); // 바로 file_path(str) 저장!
       // ⛔️ 아래 classification 관련 코드는 삭제!
     } else {
       throw new Error('지원하지 않는 파일 형식입니다.');

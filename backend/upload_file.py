@@ -65,7 +65,7 @@ async def upload_video(file: UploadFile):
         content = await file.read()
         with open(upload_path, "wb") as f:
             f.write(content)
-        return {"result": True, "file_path": upload_path}
+        return {"result": True, "video_path": upload_path}
     except HTTPException as e:
         return {"result": False, "message": str(e)}
 

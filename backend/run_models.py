@@ -1,14 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from utils.classification import Classification
 from utils.segmentation import Segmentation
+import schemas
+
 run = APIRouter(prefix="/run")
 
 @run.post("/classification", tags=["run"])
-async def run_classification(file_paths: list[str]):
+async def run_classification(video_paths: schemas.Videos):
     try:
         results = list()
         # 동영상 파일 경로를 받아서 분류 모델을 실행합니다.
-        for f in file_paths:
+        for f in video_paths.video_paths:
             # 동영상 파일인지 확인
             if not f.endswith(('.mp4', '.avi', '.mov')):
                 continue
@@ -17,9 +19,9 @@ async def run_classification(file_paths: list[str]):
             if result is not None:
                 results.append(f)
         if not results:
-            return {"result": True, "file_path": file_paths}
+            return {"result": True, "video_paths": video_paths.video_paths}
         else:
-            return {"result": True, "file_path": results}
+            return {"result": True, "video_paths": results}
     except HTTPException as e:
         return {"result": False, "message": str(e)}
     
