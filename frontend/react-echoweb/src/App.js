@@ -5,9 +5,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SignupSuccessPage from './pages/SignupSuccessPage';
-import UploadPage from './pages/UploadPage';
-import VideoSelectPage from './pages/VideoSelectPage';
-import ResultPage from './pages/ResultPage';
+import UploadPage_API from './pages/UploadPage_API';
+import VideoSelectPage_API from './pages/VideoSelectPage_API';
+import ResultPage_API from './pages/ResultPage_API';
 
 function App() {
   return (
@@ -16,9 +16,9 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/signup-success" element={<SignupSuccessPage />} />
-        <Route path="/upload" element={<UploadPage />} />
-        <Route path="/select" element={<VideoSelectPage />} />
-        <Route path="/result" element={<ResultPage />} />
+        <Route path="/upload" element={<UploadPage_API />} />
+        <Route path="/select" element={<VideoSelectPage_API />} />
+        <Route path="/result" element={<ResultPage_API />} />
       </Routes>
     </Router>
   );

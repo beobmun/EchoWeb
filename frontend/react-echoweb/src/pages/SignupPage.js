@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './SignupPage.css';
 
-const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API 사용
+const TEST_MODE = false; // ✅ true면 테스트용, false면 실제 API 사용
 
 const SignupPage = () => {
   const navigate = useNavigate();
