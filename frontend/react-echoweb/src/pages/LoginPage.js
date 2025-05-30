@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // 🔹 axios 추가
 import './LoginPage.css';
 
-const TEST_MODE = true; // ✅ true면 테스트용, false면 실제 API 사용
+const TEST_MODE = false; // ✅ true면 테스트용, false면 실제 API 사용
 
 const LoginPage = () => {  
   const [email, setEmail] = useState('');
