@@ -11,8 +11,9 @@ const UploadPage = () => {
   const fileInputRef = useRef(null);
 
   const [file, setFile] = useState(null);
-  const [uploadType, setUploadType] = useState('zip'); // 'zip' or 'a4c'
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadType, setUploadType] = useState('zip');
+  const [uploadProgress, setUploadProgress] = useState(0); // <- 기존(개별 progress)
+  const [totalProgress, setTotalProgress] = useState(0);   // <- "전체단계" progress
   const [processLog, setProcessLog] = useState([]);
   const [isDone, setIsDone] = useState(false);
   const [showHomeButton, setShowHomeButton] = useState(false);
@@ -23,7 +24,6 @@ const UploadPage = () => {
   const [showSegPopup, setShowSegPopup] = useState(false);
   const [segVideoPath, setSegVideoPath] = useState('');
   const [finalResult, setFinalResult] = useState(null);
-
 
   const navigate = useNavigate();
 
@@ -64,6 +64,7 @@ const UploadPage = () => {
     setIsDone(false);
     setProcessLog([]);
     setUploadProgress(0);
+    setTotalProgress(0); // ← 전체 progress도 리셋!
     setShowHomeButton(false);
     setTriggerReset(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -77,32 +78,65 @@ const UploadPage = () => {
     const isZip = file?.name?.toLowerCase().endsWith('.zip');
     const isVideo = /\.(mp4|avi)$/i.test(file?.name);
 
+    // 단계별 progress weight
+    const PHASE = {
+      upload: 0.5,    // 업로드: 50%
+      unzip: 0.25,    // 압축해제: 25%
+      classify: 0.25  // classification: 25%
+    };
+
     try {
       if (isZip) {
-        // (1) zip 파일 업로드 및 압축해제
+        // 1. 업로드 단계 (progress: 0~50%)
         const formData = new FormData();
         formData.append('file', file);
         const zipRes = await axios.post('/api/upload/zip', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (progressEvent) => {
             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(percent);
+            setUploadProgress(percent); // (옵션, 숨길 수도 있음)
+            setTotalProgress(percent * PHASE.upload); // 0~50%
           },
         });
+        setTotalProgress(50);
+
         if (!zipRes.data.result) throw new Error('압축 해제 실패');
         setProcessLog((prev) => [...prev, '✅ 압축 해제 완료']);
         const unzipFiles = zipRes.data.unzip_files;
 
-        // (2) 분류(classification) - 여러 영상
+        // 2. 압축해제 단계 (progress: 50~75% 애니메이션)
+        let unzipProg = 51;
+        while (unzipProg <= 75) {
+          setTotalProgress(unzipProg);
+          await new Promise(res => setTimeout(res, 12)); // 빠르게 효과
+          unzipProg += 3;
+        }
+        setTotalProgress(75);
+
+        // 3. classification 단계 (progress: 75~100% 애니메이션)
         setProcessLog((prev) => [...prev, 'A4C 분류 중...']);
-        const classifyRes = await axios.post('/api/run/classification', { video_paths: unzipFiles });
+        let classifyProg = 76;
+        // classification api 진짜 요청
+        const classifyResPromise = axios.post('/api/run/classification', { video_paths: unzipFiles });
+
+        // 애니메이션: 분류가 느릴때 체감 효과
+        while (classifyProg < 100) {
+          setTotalProgress(classifyProg);
+          await new Promise(res => setTimeout(res, 22));
+          classifyProg += 2;
+        }
+        // classification 결과 받기
+        const classifyRes = await classifyResPromise;
+        setTotalProgress(100);
+
         if (!classifyRes.data.result) throw new Error('A4C 분류 실패');
         setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
 
         setIsDone(true);
-        setFileList(classifyRes.data.video_paths); // 여러 개
+        setFileList(classifyRes.data.video_paths);
+
       } else if (isVideo) {
-        // (1) 영상 파일 업로드만 진행!
+        // (A4C 업로드는 업로드 단계만 bar)
         const formData = new FormData();
         formData.append('file', file);
         const vidRes = await axios.post('/api/upload/video', formData, {
@@ -110,20 +144,21 @@ const UploadPage = () => {
           onUploadProgress: (progressEvent) => {
             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setUploadProgress(percent);
+            setTotalProgress(percent); // 0~100%
           },
         });
+        setTotalProgress(100);
+
         if (!vidRes.data.result) throw new Error('업로드 실패');
         setProcessLog((prev) => [...prev, '✅ 영상 업로드 완료']);
 
         setIsDone(true);
-        setSelectedFile(vidRes.data.video_path); // 바로 file_path(str) 저장!
-        // ⛔️ 아래 classification 관련 코드는 삭제!
+        setSelectedFile(vidRes.data.video_path);
       } else {
         throw new Error('지원하지 않는 파일 형식입니다.');
       }
     } catch (err) {
       setProcessLog((prev) => [...prev, '❌ 실패: ' + err.message]);
-      // ...에러 처리 로직(생략)
     }
   };
 
@@ -188,7 +223,7 @@ const UploadPage = () => {
         {file && (
           <div className="progress-bar">
             <div className="progress" style={{ width: `${uploadProgress}%` }}></div>
-            <span>{uploadProgress}%</span>
+            <span>{Math.round(totalProgress)}%</span>
           </div>
         )}
         <button className="next-btn" disabled={!isDone} onClick={handleNext}>다음</button>
