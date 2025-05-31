@@ -24,10 +24,6 @@ const ResultPage = () => {
   // Hover Preview State
   const [hoverPreview, setHoverPreview] = useState(null);
 
-  const videoPath = typeof selectedFile === 'string'
-  ? selectedFile.replace(/"/g, '')
-  : selectedFile;
-
   // 데이터 불러오기
   useEffect(() => {
     if (segmentationResult && segmentationResult.origin_video_path) {
