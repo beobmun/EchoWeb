@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import SegmentationPopup from './SegmentationPopup';
 import './UploadPage.css';
 
 const UploadPage = () => {
@@ -18,6 +19,10 @@ const UploadPage = () => {
   const [triggerReset, setTriggerReset] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [selectedFile, setSelectedFile] = useState(""); // a4c 직접업로드용
+
+  const [showSegPopup, setShowSegPopup] = useState(false);
+  const [segVideoPath, setSegVideoPath] = useState('');
+  const [finalResult, setFinalResult] = useState(null);
 
 
   const navigate = useNavigate();
@@ -65,74 +70,84 @@ const UploadPage = () => {
     setFile(null);
   };
 
-const autoUpload = async () => {
-  setProcessLog((prev) => [...prev, '업로드 중...']);
+  const autoUpload = async () => {
+    setProcessLog((prev) => [...prev, '업로드 중...']);
 
-  // 파일 확장자 체크
-  const isZip = file?.name?.toLowerCase().endsWith('.zip');
-  const isVideo = /\.(mp4|avi)$/i.test(file?.name);
+    // 파일 확장자 체크
+    const isZip = file?.name?.toLowerCase().endsWith('.zip');
+    const isVideo = /\.(mp4|avi)$/i.test(file?.name);
 
-  try {
-    if (isZip) {
-      // (1) zip 파일 업로드 및 압축해제
-      const formData = new FormData();
-      formData.append('file', file);
-      const zipRes = await axios.post('/api/upload/zip', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percent);
-        },
-      });
-      if (!zipRes.data.result) throw new Error('압축 해제 실패');
-      setProcessLog((prev) => [...prev, '✅ 압축 해제 완료']);
-      const unzipFiles = zipRes.data.unzip_files;
+    try {
+      if (isZip) {
+        // (1) zip 파일 업로드 및 압축해제
+        const formData = new FormData();
+        formData.append('file', file);
+        const zipRes = await axios.post('/api/upload/zip', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          },
+        });
+        if (!zipRes.data.result) throw new Error('압축 해제 실패');
+        setProcessLog((prev) => [...prev, '✅ 압축 해제 완료']);
+        const unzipFiles = zipRes.data.unzip_files;
 
-      // (2) 분류(classification) - 여러 영상
-      setProcessLog((prev) => [...prev, 'A4C 분류 중...']);
-      const classifyRes = await axios.post('/api/run/classification', { video_paths: unzipFiles });
-      if (!classifyRes.data.result) throw new Error('A4C 분류 실패');
-      setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
+        // (2) 분류(classification) - 여러 영상
+        setProcessLog((prev) => [...prev, 'A4C 분류 중...']);
+        const classifyRes = await axios.post('/api/run/classification', { video_paths: unzipFiles });
+        if (!classifyRes.data.result) throw new Error('A4C 분류 실패');
+        setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
 
-      setIsDone(true);
-      setFileList(classifyRes.data.video_paths); // 여러 개
-    } else if (isVideo) {
-      // (1) 영상 파일 업로드만 진행!
-      const formData = new FormData();
-      formData.append('file', file);
-      const vidRes = await axios.post('/api/upload/video', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percent);
-        },
-      });
-      if (!vidRes.data.result) throw new Error('업로드 실패');
-      setProcessLog((prev) => [...prev, '✅ 영상 업로드 완료']);
+        setIsDone(true);
+        setFileList(classifyRes.data.video_paths); // 여러 개
+      } else if (isVideo) {
+        // (1) 영상 파일 업로드만 진행!
+        const formData = new FormData();
+        formData.append('file', file);
+        const vidRes = await axios.post('/api/upload/video', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (progressEvent) => {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percent);
+          },
+        });
+        if (!vidRes.data.result) throw new Error('업로드 실패');
+        setProcessLog((prev) => [...prev, '✅ 영상 업로드 완료']);
 
-      setIsDone(true);
-      setSelectedFile(vidRes.data.video_path); // 바로 file_path(str) 저장!
-      // ⛔️ 아래 classification 관련 코드는 삭제!
-    } else {
-      throw new Error('지원하지 않는 파일 형식입니다.');
+        setIsDone(true);
+        setSelectedFile(vidRes.data.video_path); // 바로 file_path(str) 저장!
+        // ⛔️ 아래 classification 관련 코드는 삭제!
+      } else {
+        throw new Error('지원하지 않는 파일 형식입니다.');
+      }
+    } catch (err) {
+      setProcessLog((prev) => [...prev, '❌ 실패: ' + err.message]);
+      // ...에러 처리 로직(생략)
     }
-  } catch (err) {
-    setProcessLog((prev) => [...prev, '❌ 실패: ' + err.message]);
-    // ...에러 처리 로직(생략)
-  }
-};
+  };
 
-// 다음 버튼 핸들러
-const handleNext = () => {
-  const isZip = file?.name?.toLowerCase().endsWith('.zip');
-  const isVideo = /\.(mp4|avi)$/i.test(file?.name);
+  // 다음 버튼 핸들러
+  const handleNext = () => {
+    const isZip = file?.name?.toLowerCase().endsWith('.zip');
+    const isVideo = /\.(mp4|avi)$/i.test(file?.name);
 
-  if (isZip) {
-    navigate('/select', { state: { processLog, fileList } }); // 여러개 선택
-  } else if (isVideo) {
-    navigate('/result', { state: { processLog, selectedFile } }); // 바로 결과
-  }
-};
+    if (isZip) {
+      navigate('/select', { state: { processLog, fileList } });
+    } else if (isVideo) {
+      // SegmentationPopup 띄우기
+      setSegVideoPath(selectedFile);
+      setShowSegPopup(true);
+    }
+  };
+
+  // SegmentationPopup 완료 시 ResultPage로 이동
+  const handleSegmentationComplete = ({ result, processLog: updatedLog }) => {
+    setShowSegPopup(false);
+    setFinalResult(result);
+    // ResultPage로 이동, segmentation 결과, 로그 함께 전달
+    navigate('/result', { state: { processLog: updatedLog, segmentationResult: result } });
+  };
 
   return (
     <div className="upload-container">
@@ -178,6 +193,13 @@ const handleNext = () => {
         )}
         <button className="next-btn" disabled={!isDone} onClick={handleNext}>다음</button>
       </div>
+      {showSegPopup && (
+        <SegmentationPopup
+          videoPath={segVideoPath}
+          processLog={processLog}
+          onComplete={handleSegmentationComplete}
+        />
+      )}
       <div className="process-log">
         <h3>Process Log</h3>
         <ul>

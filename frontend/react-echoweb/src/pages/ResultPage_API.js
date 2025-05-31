@@ -9,7 +9,7 @@ const ResultPage = () => {
   const location = useLocation();
   // 이전 페이지에서 받은 로그와 선택파일 경로
   const processLog = location.state?.processLog || [];
-  const selectedFile = location.state?.selectedFile || '';
+  const segmentationResult = location.state?.segmentationResult || {};
 
   // 상태값
   const [origVid, setOrigVid] = useState('');
@@ -30,30 +30,17 @@ const ResultPage = () => {
 
   // 데이터 불러오기
   useEffect(() => {
-    if (!videoPath) return;
-
-    const fetchResult = async () => {
-      try {
-        console.log("video_path for API:", videoPath, typeof videoPath);
-        const res = await axios.get('/api/run/segmentation', {
-          params: { video_path: videoPath }
-        });
-        // 예시 응답 구조에 맞게 저장
-        setOrigVid(res.data.origin_video_path);
-        setSegVid(res.data.segmented_video_path);
-        setAreas(res.data.areas || []);
-        setEsPoints(res.data.es_points || []);
-        setEdPoints(res.data.ed_points || []);  
-        setEsFramePath(res.data.es_frames_path || []);
-        setEdFramePath(res.data.ed_frames_path || []);
-        setEF(res.data.ef);
-      } catch (err) {
-        alert('결과를 불러오지 못했습니다: ' + (err.message || ''));
-      }
-    };
-
-    if (videoPath) fetchResult();
-  }, [videoPath]);
+    if (segmentationResult && segmentationResult.origin_video_path) {
+      setOrigVid(segmentationResult.origin_video_path);
+      setSegVid(segmentationResult.segmented_video_path);
+      setAreas(segmentationResult.areas || []);
+      setEsPoints(segmentationResult.es_points || []);
+      setEdPoints(segmentationResult.ed_points || []);
+      setEsFramePath(segmentationResult.es_frames_path || []);
+      setEdFramePath(segmentationResult.ed_frames_path || []);
+      setEF(segmentationResult.ef);
+    }
+  }, [segmentationResult]);
 
   // 차트 옵션/데이터 (ESV=빨간점, EDV=파란점, hover preview 연동)
   const makePlot = () => {
