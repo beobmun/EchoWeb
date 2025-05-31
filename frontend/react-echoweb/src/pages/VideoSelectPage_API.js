@@ -26,9 +26,9 @@ const VideoSelectPage = () => {
     setVideos(fileList);
   }, [fileList]);
 
-  // 3초 hover preview
+  // 1초 hover preview
   const handleHover = (filename) => {
-    previewTimer.current = setTimeout(() => setPreview(filename), 3000);
+    previewTimer.current = setTimeout(() => setPreview(filename), 1000);
   };
   const cancelHover = () => clearTimeout(previewTimer.current);
 
