@@ -67,7 +67,7 @@ cd EchoWeb
 ### 3. model weights 다운
 > [model_weights](https://drive.google.com/drive/folders/1Sz0Pox7EK7c0mRxSX12g7wUa3q6K_-Jg?usp=sharing)를 다운 받아 ```EchoWeb/backend/model_weights/``` 에 넣어주세요.
 >
-> 🔎 사용된 AI 모델에 대한 코드를 확인할 수 있습니다. : https://github.com/beobmun/Capstone_DeepEcho]
+> 🔎 사용된 AI 모델에 대한 코드를 확인할 수 있습니다. : https://github.com/beobmun/Capstone_DeepEcho
 ### 4. .env 파일 설정
 ```
 MYSQL_ROOT_PASSWORD=
