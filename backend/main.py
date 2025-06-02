@@ -23,7 +23,7 @@ app.include_router(run_models.run)
 
 # 정적 파일 경로 설정 -> 프론트엔드엣 동영상 파일을 불러오기 위해
 os.makedirs("temp", exist_ok=True)
-app.mount("temp", StaticFiles(directory="temp"), name="temp")
+app.mount("/temp", StaticFiles(directory="temp"), name="temp")
 
 # CORS 설정
 # origins = [
