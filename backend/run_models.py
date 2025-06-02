@@ -30,11 +30,9 @@ async def run_segmentation(video_path: str):
     try:
         # segmentation 모델을 실행하는 로직을 추가해야 합니다.
         output_path = "temp/segmentation_output"
+        # Segmentation 모델을 실행
         segmentation = Segmentation().run(video_path=video_path, output_path=output_path)
-        # 예를 들어, segmentation 모델을 실행하고,
-        # 결과를 반환합니다.
-        # segmentation 모델의 결과로는 해당 영상의 file_path가 return됩니다.
-        # 여기서는 단순히 file_path, ef, 면적 변화 흐름 그래프를 반환합니다.
+        
         return {"result": True, 
                 "origin_video_path": video_path, 
                 "segmented_video_path": segmentation.get_segmented_video_path(),

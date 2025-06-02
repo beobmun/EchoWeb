@@ -20,18 +20,21 @@ SAM2_TUNED_MODEL_PATH = "model_weights/fine_tuned_sam2.torch"
 class UnetPredictor:
     def __init__(self):
         self.convertor = Video2Img()
-        
+    
+    # Load the UNet model and its weights    
     def load_weight(self, weight_path):
         self.model = UNet(n_channels=1, n_classes=2, bilinear=True)
         self.model.load_state_dict(torch.load(weight_path))
         self.model.eval()
         return self
-        
+    
+    # to set the device for the model
     def to(self, device):
         self.device = device
         self.model.to(device)
         return self
         
+    # Predict the mask for the video frames
     def predict(self, video_path, output_path):
         os.makedirs(output_path, exist_ok=True)
         name = video_path.split("/")[-1].split(".")[0]
@@ -58,6 +61,7 @@ class SAM2Predictor:
         self.base_model = base_model
         self.predictor = SAM2VideoPredictor.from_pretrained(base_model)
 
+    # Set the video path and output path for the segmentation
     def with_video_path(self, video_path):
         self.video_path = video_path
         return self
@@ -65,7 +69,8 @@ class SAM2Predictor:
     def with_output_path(self, output_path):
         self.output_path = output_path
         return self
-        
+    
+    # Load the fine-tuned SAM2 model weights
     def load_weight(self, tuned_model_path):
         name = self.video_path.split("/")[-1].split(".")[0]
         self.predictor.load_state_dict(torch.load(tuned_model_path))
@@ -77,7 +82,8 @@ class SAM2Predictor:
         self.device = device
         self.predictor.to(device)
         return self
-        
+    
+    # Predict the segmentation mask for the video frames
     def predict(self, mask):
         points, labels = GetPoints(mask).run()
         _, out_obj_ids, out_mask_logits = self.predictor.add_new_points_or_box(
@@ -95,6 +101,7 @@ class SAM2Predictor:
             }
         return self
     
+    # Save the segmented video with masks overlayed
     def save_segmented_video(self, imgs, fps, width, height, save_path):
         fig, ax = plt.subplots()
         w = width / fig.dpi
@@ -140,6 +147,7 @@ class Calculator:
         self.areas = list()
         self.masks = list()
     
+    # Calculate areas of the masks in the video segment
     def calc_areas(self, imgs, video_segment):
         for out_frame_idx in range(len(imgs)):
             if out_frame_idx in video_segment:
@@ -155,6 +163,7 @@ class Calculator:
         
         return self
     
+    # Find end-systolic (ES) and end-diastolic (ED) points based on the convolved areas
     def find_es_ed(self, conv_base):
         self.conv_base = conv_base
         conved_areas = np.convolve(self.areas, np.ones(conv_base)/conv_base, mode='valid')
@@ -226,7 +235,8 @@ class Calculator:
         self.ed_points = ed_points
         self.conved_areas = conved_areas
         return self
-        
+    
+    # Save the end-systolic (ES) and end-diastolic (ED) frames as images
     def save_frames(self, output_path):
         self.es_frames_path = f"{output_path}/es_frames"
         self.ed_frames_path = f"{output_path}/ed_frames"
@@ -240,7 +250,8 @@ class Calculator:
             cv2.imwrite(f"{self.ed_frames_path}/{i}.jpg", self.imgs[f])
         
         return self
-        
+    
+    # Calculate the ejection fraction (EF) based on the volumes of the end-systolic and end-diastolic frames
     def calc_ef(self):
         continuous = lambda row: next((i for i, r in enumerate(row) if r == 0), len(row))
         def calc_volume(mask):
@@ -283,12 +294,15 @@ class Segmentation:
         self.sam2_predictor = SAM2Predictor()
         self.calculator = Calculator()
     
+    # Run the segmentation process on the video
     def run(self, video_path, output_path):
+        # Load the UNet model and predict the mask for the video frames
         mask = (self.unet_predictor
                 .load_weight(UNET_PATH)
                 .to(self.device)
                 .predict(video_path, output_path))
         
+        # Load the SAM2 model, predict the segmentation, and save the segmented video
         (self.sam2_predictor.with_video_path(video_path)
                             .with_output_path(output_path)
                             .load_weight(SAM2_TUNED_MODEL_PATH)
@@ -301,6 +315,7 @@ class Segmentation:
                                 self.unet_predictor.convertor.get_height(),
                                 f"{output_path}/{video_path.split('/')[-1].split('.')[0]}/segmentation.mp4"))
         
+        # Calculate the areas, find end-systolic and end-diastolic points, save frames, and calculate ejection fraction
         (self.calculator.calc_areas(self.unet_predictor.convertor.get_imgs(), 
                                     self.sam2_predictor.get_video_segment())
                         .find_es_ed(int(self.unet_predictor.convertor.get_fps()/4))
