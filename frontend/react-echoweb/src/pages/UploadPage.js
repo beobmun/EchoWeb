@@ -135,10 +135,11 @@ const UploadPage = () => {
             setProcessLog((prev) => [...prev, '✅ A4C 추출 완료 (테스트 모드)']);
           } else throw new Error('A4C 추출 실패 (테스트 모드)');
         } else {
-          const classifyRes = await axios.post('/api/run/classification', { unzip_files : unzipFiles });
+          
+          const classifyRes = await axios.post('/api/run/classification', { video_paths: unzipFiles });
           if (classifyRes.data.result) {
             setStatus((prev) => ({ ...prev, result: true }));
-            setFileList(classifyRes.data.file_path);  // ⬅️ 여기서 file_path를 상태에 저장
+            setFileList(classifyRes.data.video_paths);  // ⬅️ 여기서 file_path를 상태에 저장
             setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
           } else throw new Error('A4C 추출 실패');
         }
