@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-
+from fastapi.staticfiles import StaticFiles
 import models, auth, upload_file, run_models
+import os
+
 from database import engine
 
 models.Base.metadata.create_all(bind=engine)
@@ -18,6 +20,10 @@ app = FastAPI(
 app.include_router(auth.auth)
 app.include_router(upload_file.upload)
 app.include_router(run_models.run)
+
+# 정적 파일 경로 설정 -> 프론트엔드엣 동영상 파일을 불러오기 위해
+os.makedirs("temp", exist_ok=True)
+app.mount("temp", StaticFiles(directory="temp"), name="temp")
 
 # CORS 설정
 # origins = [
