@@ -10,7 +10,9 @@ class Video2Img:
         self.width = None
         self.height = None
         self.imgs = None
-        
+    
+    # Load video from a given path
+    # Returns an instance of Video2Img with the video loaded
     def load_video(self, video_path):
         self.cap = cv2.VideoCapture(video_path)
         if not self.cap.isOpened():
@@ -21,6 +23,7 @@ class Video2Img:
         self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         return self
 
+    # Convert video frames to images
     def convert(self, gray=True):
         if self.cap is None:
             print("Video not loaded.")
@@ -38,6 +41,7 @@ class Video2Img:
         self.imgs = np.array(self.imgs)
         return self.imgs
     
+    # Save images to a specified directory
     def save_imgs(self, video_name, save_dir):
         os.makedirs(f"{save_dir}/{video_name}", exist_ok=True)
         for i, img in enumerate(self.imgs):

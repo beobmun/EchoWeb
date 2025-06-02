@@ -1,6 +1,7 @@
 // src/pages/VideoSelectPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import SegmentationPopup from './SegmentationPopup';
 import './VideoSelectPage.css';
 
 const VideoSelectPage = () => {
@@ -17,14 +18,17 @@ const VideoSelectPage = () => {
   const [preview, setPreview] = useState(null);
   const previewTimer = useRef(null);
 
+  const [showSegPopup, setShowSegPopup] = useState(false);
+  const [finalResult, setFinalResult] = useState(null);
+
   // fileList를 곧바로 setVideos (mount될 때 1회만)
   useEffect(() => {
     setVideos(fileList);
   }, [fileList]);
 
-  // 3초 hover preview
+  // 1초 hover preview
   const handleHover = (filename) => {
-    previewTimer.current = setTimeout(() => setPreview(filename), 3000);
+    previewTimer.current = setTimeout(() => setPreview(filename), 1000);
   };
   const cancelHover = () => clearTimeout(previewTimer.current);
 
@@ -40,8 +44,15 @@ const VideoSelectPage = () => {
 
   // "다음" 버튼 클릭 시
   const handleNext = () => {
-    // ResultPage에 선택한 영상 경로 + 로그 넘김
-    navigate('/result', { state: { processLog, selectedFile: selected } });
+    if (selected) {
+      setShowSegPopup(true);
+    }
+  };
+
+  const handleSegmentationComplete = ({ result, processLog: updatedLog }) => {
+    setShowSegPopup(false);
+    setFinalResult(result);
+    navigate('/result', { state: { processLog: updatedLog, segmentationResult: result } });
   };
 
   return (
@@ -70,14 +81,21 @@ const VideoSelectPage = () => {
       
       {/* 다음 버튼 */}
       <button className="next-btn" disabled={!selected} onClick={handleNext}>다음</button>
-
+      
       {/* 영상 preview */}
       {preview && (
         <div className="preview-modal" onClick={e => e.stopPropagation()}>
-          <video src={preview} controls autoPlay loop />
+          <video src={"http://localhost:4242/" + preview} controls autoPlay loop />
         </div>
       )}
-
+      {/* SegmentationPopup */}
+      {showSegPopup && (
+        <SegmentationPopup
+          videoPath={selected}
+          processLog={processLog}
+          onComplete={handleSegmentationComplete}
+        />
+      )}
       {/* Process Log */}
       <div className="process-log">
         <h3>Process Log</h3>

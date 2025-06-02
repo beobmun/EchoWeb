@@ -9,7 +9,7 @@ const ResultPage = () => {
   const location = useLocation();
   // 이전 페이지에서 받은 로그와 선택파일 경로
   const processLog = location.state?.processLog || [];
-  const selectedFile = location.state?.selectedFile || '';
+  const segmentationResult = location.state?.segmentationResult || {};
 
   // 상태값
   const [origVid, setOrigVid] = useState('');
@@ -24,36 +24,19 @@ const ResultPage = () => {
   // Hover Preview State
   const [hoverPreview, setHoverPreview] = useState(null);
 
-  const videoPath = typeof selectedFile === 'string'
-  ? selectedFile.replace(/"/g, '')
-  : selectedFile;
-
   // 데이터 불러오기
   useEffect(() => {
-    if (!videoPath) return;
-
-    const fetchResult = async () => {
-      try {
-        console.log("video_path for API:", videoPath, typeof videoPath);
-        const res = await axios.get('/api/run/segmentation', {
-          params: { video_path: videoPath }
-        });
-        // 예시 응답 구조에 맞게 저장
-        setOrigVid(res.data.origin_video_path);
-        setSegVid(res.data.segmented_video_path);
-        setAreas(res.data.areas || []);
-        setEsPoints(res.data.es_points || []);
-        setEdPoints(res.data.ed_points || []);  
-        setEsFramePath(res.data.es_frames_path || []);
-        setEdFramePath(res.data.ed_frames_path || []);
-        setEF(res.data.ef);
-      } catch (err) {
-        alert('결과를 불러오지 못했습니다: ' + (err.message || ''));
-      }
-    };
-
-    if (videoPath) fetchResult();
-  }, [videoPath]);
+    if (segmentationResult && segmentationResult.origin_video_path) {
+      setOrigVid(segmentationResult.origin_video_path);
+      setSegVid(segmentationResult.segmented_video_path);
+      setAreas(segmentationResult.areas || []);
+      setEsPoints(segmentationResult.es_points || []);
+      setEdPoints(segmentationResult.ed_points || []);
+      setEsFramePath(segmentationResult.es_frames_path || []);
+      setEdFramePath(segmentationResult.ed_frames_path || []);
+      setEF(segmentationResult.ef);
+    }
+  }, [segmentationResult]);
 
   // 차트 옵션/데이터 (ESV=빨간점, EDV=파란점, hover preview 연동)
   const makePlot = () => {
@@ -129,13 +112,13 @@ const ResultPage = () => {
           <div>
             <b style={{ fontSize: 22 }}>Original Video</b>
             <div className="imgbox">
-              {origVid ? <video src={origVid} controls width="250" /> : <div className="img-placeholder" />}
+              {origVid ? <video src={"http://localhost:4242/" + origVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
           <div style={{ marginTop: 20 }}>
             <b style={{ fontSize: 22 }}>Segmentation video</b>
             <div className="imgbox">
-              {segVid ? <video src={segVid} controls width="250" /> : <div className="img-placeholder" />}
+              {segVid ? <video src={"http://localhost:4242/" + segVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
         </div>
@@ -150,7 +133,7 @@ const ResultPage = () => {
       {/* 점 hover 시 프레임 이미지 프리뷰 */}
       {hoverPreview && (
         <div className="frame-preview-modal">
-          <img src={hoverPreview.img} alt={`${hoverPreview.type} Frame Preview`} style={{ width: 320, borderRadius: 10, boxShadow: '0 2px 10px #8885' }} />
+          <img src={"http://localhost:4242/" + hoverPreview.img} alt={`${hoverPreview.type} Frame Preview`} style={{ width: 320, borderRadius: 10, boxShadow: '0 2px 10px #8885' }} />
           <div style={{ textAlign: 'center', marginTop: 5 }}>{hoverPreview.type} 프레임 preview</div>
         </div>
       )}

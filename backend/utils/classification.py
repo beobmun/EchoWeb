@@ -75,6 +75,7 @@ class ClassificationModel:
     def __init__(self):
         self.model = CNNModel()
 
+    # Load model weights from a specified path
     def with_weight(self, weight_path):
         try:
             # model = CNNModel()
@@ -85,6 +86,7 @@ class ClassificationModel:
             print(f"Error loading model weights: {e}")
             return None
 
+    # Move model to a specified device (CPU or GPU)
     def with_device(self, device):
         self.model.to(device)
         return self
@@ -96,7 +98,8 @@ class ClassificationModel:
 class Classification:
     def __init__(self, video_path):
         self.video_path = video_path
-        
+    
+    # Predict the class of the video using the classification model
     def predict(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = (ClassificationModel()
@@ -117,6 +120,7 @@ class Classification:
                 pred.append(predicted.item())
         return np.mean(pred)
     
+    # Run the classification and return the video path if classified as 'view', else None
     def run(self):
         pred = self.predict()
         if pred <= 0.1:
