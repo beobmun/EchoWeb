@@ -21,6 +21,8 @@ const VideoSelectPage = () => {
   const [showSegPopup, setShowSegPopup] = useState(false);
   const [finalResult, setFinalResult] = useState(null);
 
+  const HOST = "http://10.125.208.186:8042";
+
   // fileList를 곧바로 setVideos (mount될 때 1회만)
   useEffect(() => {
     setVideos(fileList);
@@ -85,7 +87,7 @@ const VideoSelectPage = () => {
       {/* 영상 preview */}
       {preview && (
         <div className="preview-modal" onClick={e => e.stopPropagation()}>
-          <video src={preview} controls autoPlay loop />
+          <video src={preview ? `${HOST}${preview}` : ''} controls autoPlay loop />
         </div>
       )}
       {/* SegmentationPopup */}
