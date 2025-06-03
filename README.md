@@ -98,6 +98,8 @@ docker-compose up --build
 |  AI Model  |<img src="https://img.shields.io/badge/pytorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white">||
 |  Infra  |<img src="https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/nginx-009639?style=for-the-badge&logo=nginx&logoColor=white">|
 
+## 🏗️ 시스템 구성 (3-Tier Architecture)
+![docker 3-tier Archtecture](https://github.com/user-attachments/assets/25c7ae01-789f-4d19-80e7-bcc1f8c9c22e)
 
 ## 📬 API 명세
 |Method|URL|기능|
