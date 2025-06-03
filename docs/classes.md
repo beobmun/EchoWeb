@@ -60,3 +60,7 @@
 
 #### `GetPoints`
 - 마스크에서 positive/negative 포인트를 샘플링하여 SAM2에 제공
+
+# ⛪️ Class Diagram
+![class_diagram](https://github.com/user-attachments/assets/d671c3fb-3ab3-4a3d-932f-6ec4170a5dd3)
+
