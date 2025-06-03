@@ -114,13 +114,13 @@ const ResultPage = () => {
           <div>
             <b style={{ fontSize: 22 }}>Original Video</b>
             <div className="imgbox">
-              {origVid ? <video src={HOST + origVid} controls width="250" /> : <div className="img-placeholder" />}
+              {origVid ? <video src={origVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
           <div style={{ marginTop: 20 }}>
             <b style={{ fontSize: 22 }}>Segmentation video</b>
             <div className="imgbox">
-              {segVid ? <video src={HOST + segVid} controls width="250" /> : <div className="img-placeholder" />}
+              {segVid ? <video src={segVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@ const ResultPage = () => {
       {/* 점 hover 시 프레임 이미지 프리뷰 */}
       {hoverPreview && (
         <div className="frame-preview-modal">
-          <img src={hoverPreview.img ? `${HOST}${hoverPreview.img}` : ''} alt={`${hoverPreview.type} Frame Preview`} style={{ width: 320, borderRadius: 10, boxShadow: '0 2px 10px #8885' }} />
+          <img src={hoverPreview.img} alt={`${hoverPreview.type} Frame Preview`} style={{ width: 320, borderRadius: 10, boxShadow: '0 2px 10px #8885' }} />
           <div style={{ textAlign: 'center', marginTop: 5 }}>{hoverPreview.type} 프레임 preview</div>
         </div>
       )}

@@ -87,7 +87,7 @@ const VideoSelectPage = () => {
       {/* 영상 preview */}
       {preview && (
         <div className="preview-modal" onClick={e => e.stopPropagation()}>
-          <video src={preview ? `${HOST}${preview}` : ''} controls autoPlay loop />
+          <video src={preview} controls autoPlay loop />
         </div>
       )}
       {/* SegmentationPopup */}
