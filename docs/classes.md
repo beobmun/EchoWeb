@@ -17,7 +17,7 @@
 - 비디오에서 프레임을 추출해 CNN 모델로 예측
 - `.predict()`: 프레임별로 예측 후 평균 계산
 - `.run()`: 기준보다 낮으면 유효한 뷰로 간주하고 경로 반환
----
+
 ## 💼 Segmentation 관련
 
 #### `UnetPredictor`
@@ -42,14 +42,14 @@
 - 전체 파이프라인을 연결
 - `.run()`: UNet -> SAM2 -> Calculator 실행
 - `get_*()`: 결과 접근자 메서드들
----
+  
 ## 📽️ 영상 처리 관련
 
 #### `Video2Img`
 - OpenCV로 비디오 로드 및 프레임 추출
 - `.load_video()`, `.convert()`, `.save_imgs()`
 - `.get_fps()`, `.get_width()`, `.get_height()`, `.get_imgs()`
----
+  
 ## 🛠️ 보조 클래스
 
 #### `Dataset`
@@ -61,6 +61,8 @@
 #### `GetPoints`
 - 마스크에서 positive/negative 포인트를 샘플링하여 SAM2에 제공
 
-# ⛪️ Class Diagram
-![class_diagram](https://github.com/user-attachments/assets/d671c3fb-3ab3-4a3d-932f-6ec4170a5dd3)
+---
 
+# ⛪️ Class Diagram
+
+![class_diagram](https://github.com/user-attachments/assets/3729ff4c-0e24-4053-8517-76db9019d0a7)
