@@ -1,0 +1,61 @@
+services:
+    db:
+        image: mysql:8.0
+        restart: always
+        container_name: db
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        ports:
+            - 3342:${DB_PORT}
+        volumes:
+            - db_data:/var/lib/mysql
+            - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+        networks:
+            - echoweb_default
+
+    backend:
+        build: ./backend
+        container_name: backend
+        ports:
+            - 4242:4242
+        depends_on:
+            - db
+        environment:
+            DB_HOST: ${DB_HOST}
+            DB_PORT: ${DB_PORT}
+            DB_USER: ${DB_USER}
+            DB_PASSWORD: ${DB_PASSWORD}
+            DB_NAME: ${DB_NAME}
+            NVIDIA_VISIBLE_DEVICES: all
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: all
+                          capabilities: [gpu]
+        # runtime: nvidia
+        networks:
+            - echoweb_default
+
+    frontend:
+        build:
+            context: ./frontend/react-echoweb
+            dockerfile: Dockerfile
+        container_name: frontend
+        ports:
+            - 8042:80
+        depends_on:
+            - backend
+        networks:
+            - echoweb_default
+
+networks:
+    echoweb_default:
+        driver: bridge
+
+volumes:
+    db_data:

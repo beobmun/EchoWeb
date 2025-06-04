@@ -1,1 +1,9 @@
 .DS_Store
+.vscode/
+__pycache__/
+.env
+docker_imgs_rm.sh
+mysql.server
+backend/model_weights/*
+!backend/model_weights/.gitkeep
+node_modules
