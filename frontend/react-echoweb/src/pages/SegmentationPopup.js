@@ -29,22 +29,26 @@ const SegmentationPopup = ({ videoPath, processLog, onComplete }) => {
 
     // 2. Segmentation 실제 요청
     const runSegmentation = async () => {
+      let nextLog = [...processLog]; // 항상 append 용으로 직접 관리!
+
       try {
-        setLocalLog((prev) => [...prev, 'Segmentation 진행중...']);
-        // GET 요청
+        nextLog.push('Segmentation 진행중...');
+        setLocalLog([...nextLog]);
         const res = await axios.get('/api/run/segmentation', {
           params: { video_path: videoPath }
         });
         running = false; // 진행 중지
         clearInterval(timerRef.current);
         setProgress(100);
-        setLocalLog((prev) => [...prev, '✅ Segmentation 완료!', 'EF 계산중...']);
+        nextLog.push('✅ Segmentation 완료!', 'EF 계산중...');
+        setLocalLog([...nextLog]);
         setTimeout(() => {
-          setLocalLog((prev) => [...prev, '✅ EF 계산 완료!']);
+          nextLog.push('✅ EF 계산 완료!');
+          setLocalLog([...nextLog]);
           setTimeout(() => {
             onComplete({
               result: res.data,
-              processLog: [...localLog, '✅ EF 계산 완료!'],
+              processLog: nextLog, // 가장 최신 상태로!
             });
           }, 500);
         }, 500);
@@ -52,8 +56,9 @@ const SegmentationPopup = ({ videoPath, processLog, onComplete }) => {
         running = false;
         clearInterval(timerRef.current);
         setProgress(100);
+        nextLog.push('❌ Segmentation 실패');
         setError('Segmentation 실패: ' + (err?.response?.data?.detail || err.message));
-        setLocalLog((prev) => [...prev, '❌ Segmentation 실패']);
+        setLocalLog([...nextLog]);
       }
     };
 
