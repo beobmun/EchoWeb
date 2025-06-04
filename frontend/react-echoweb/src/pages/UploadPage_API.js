@@ -106,8 +106,8 @@ const UploadPage = () => {
         // 압축해제 애니메이션 (업로드 끝나면 약 1~2초 간격으로 100까지)
         let decompress = progressValue;
         while (decompress < 100) {
-        await new Promise(res => setTimeout(res, 130)); // 약간씩 느리게
-        decompress += 3;
+        await new Promise(res => setTimeout(res, 80)); // 약간씩 느리게
+        decompress += 1.2;
         setProgressValue(decompress > 100 ? 100 : decompress);
         } 
         setProgressValue(100);
@@ -231,14 +231,12 @@ const UploadPage = () => {
           <div className="progress-bar">
             <div className="progress" style={{ width: `${progressValue}%` }}></div>
             <span>{Math.round(progressValue)}%</span>
-            <span className="progress-label">업로드/압축해제 진행중...        </span>
           </div>
         )}
         {progressPhase === 'classify' && (
           <div className="progress-bar">
             <div className="progress" style={{ width: `${progressValue}%` }}></div>
             <span>{Math.round(progressValue)}%</span>
-            <span className="progress-label">A4C 분류 진행중...     </span>
           </div>
         )}
         <button className="next-btn" disabled={!isDone} onClick={handleNext}>다음</button>
