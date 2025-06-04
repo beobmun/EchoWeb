@@ -14,6 +14,9 @@ const UploadPage = () => {
   const [uploadType, setUploadType] = useState('zip');
   const [uploadProgress, setUploadProgress] = useState(0); // <- 기존(개별 progress)
   const [totalProgress, setTotalProgress] = useState(0);   // <- "전체단계" progress
+  const [progressPhase, setProgressPhase] = useState(null); // 'upload', 'classify', null
+  const [progressValue, setProgressValue] = useState(0);
+
   const [processLog, setProcessLog] = useState([]);
   const [isDone, setIsDone] = useState(false);
   const [showHomeButton, setShowHomeButton] = useState(false);
@@ -87,47 +90,51 @@ const UploadPage = () => {
 
     try {
       if (isZip) {
-        // 1. 업로드 단계 (progress: 0~50%)
+        // (1) 업로드+압축해제
+        setProgressPhase('upload');
+        setProgressValue(0);
+
         const formData = new FormData();
         formData.append('file', file);
         const zipRes = await axios.post('/api/upload/zip', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (progressEvent) => {
             const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(percent); // (옵션, 숨길 수도 있음)
-            setTotalProgress(percent * PHASE.upload); // 0~50%
+            setProgressValue(percent);
           },
         });
-        setTotalProgress(50);
+        // 압축해제 애니메이션 (업로드 끝나면 약 1~2초 간격으로 100까지)
+        let decompress = progressValue;
+        while (decompress < 100) {
+        await new Promise(res => setTimeout(res, 80)); // 약간씩 느리게
+        decompress += 5;
+        setProgressValue(decompress > 100 ? 100 : decompress);
+        } 
+        setProgressValue(100);
+        setProgressPhase(null);
 
         if (!zipRes.data.result) throw new Error('압축 해제 실패');
         setProcessLog((prev) => [...prev, '✅ 압축 해제 완료']);
         const unzipFiles = zipRes.data.unzip_files;
 
-        // 2. 압축해제 단계 (progress: 50~75% 애니메이션)
-        let unzipProg = 51;
-        while (unzipProg <= 75) {
-          setTotalProgress(unzipProg);
-          await new Promise(res => setTimeout(res, 12)); // 빠르게 효과
-          unzipProg += 3;
-        }
-        setTotalProgress(75);
+        // (2) 분류 단계로 진입!
+        setProgressPhase('classify');
+        setProgressValue(0);
 
-        // 3. classification 단계 (progress: 75~100% 애니메이션)
+        // classification 실제 요청 보내기
         setProcessLog((prev) => [...prev, 'A4C 분류 중...']);
-        let classifyProg = 76;
-        // classification api 진짜 요청
-        const classifyResPromise = axios.post('/api/run/classification', { video_paths: unzipFiles });
+        let progress = 0;
+        const classifyResPromise = axios.post('/api/run/classification', { video_paths: zipRes.data.unzip_files });
 
-        // 애니메이션: 분류가 느릴때 체감 효과
-        while (classifyProg < 100) {
-          setTotalProgress(classifyProg);
-          await new Promise(res => setTimeout(res, 22));
-          classifyProg += 2;
+        // 60초 정도에 맞춰서 천천히 100까지 올라가는 애니메이션
+        for (let i = 0; i < 60; i++) {
+          await new Promise(res => setTimeout(res, 1000)); // 1초에 1% 정도
+          progress += 1.7; // 1분 동안 100%로 근접 (조절 가능)
+          setProgressValue(progress > 100 ? 100 : progress);
         }
-        // classification 결과 받기
         const classifyRes = await classifyResPromise;
-        setTotalProgress(100);
+        setProgressValue(100);
+        setProgressPhase(null);
 
         if (!classifyRes.data.result) throw new Error('A4C 분류 실패');
         setProcessLog((prev) => [...prev, '✅ A4C 추출 완료']);
@@ -220,10 +227,18 @@ const UploadPage = () => {
             style={{ display: 'none' }}
           />
         </div>
-        {file && (
+        {progressPhase === 'upload' && (
           <div className="progress-bar">
-            <div className="progress" style={{ width: `${uploadProgress}%` }}></div>
-            <span>{Math.round(totalProgress)}%</span>
+            <div className="progress" style={{ width: `${progressValue}%` }}></div>
+            <span>{Math.round(progressValue)}%</span>
+            <span className="progress-label">업로드/압축해제 진행중...</span>
+          </div>
+        )}
+        {progressPhase === 'classify' && (
+          <div className="progress-bar">
+            <div className="progress" style={{ width: `${progressValue}%` }}></div>
+            <span>{Math.round(progressValue)}%</span>
+            <span className="progress-label">A4C 분류 진행중...</span>
           </div>
         )}
         <button className="next-btn" disabled={!isDone} onClick={handleNext}>다음</button>
