@@ -20,7 +20,7 @@ const SegmentationPopup = ({ videoPath, processLog, onComplete }) => {
         // 마지막 95%에서 멈춤
         if (fakeProgress < 95) {
           // 점점 느리게 (가속감 줘도 OK)
-          fakeProgress += (fakeProgress < 60 ? 1.5 : 0.7);
+          fakeProgress += (fakeProgress < 60 ? 0.3 : 0.6);
           setProgress(Math.min(fakeProgress, 95));
         }
       }, 80);
