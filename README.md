@@ -11,7 +11,7 @@
 이를 바탕으로 의료진이 AI 기반 분석을 직관적이고 효율적으로 사용할 수 있도록, 본 시스템은 웹 인터페이스를 통해 제공된다. 사용자는 심초음파 영상을 업로드하고, EF 계산 결과 및 면적 변화 시각화를 손쉽게 확인할 수 있다.
 
 ## 🖥️ DEMO
-**데모 video 넣기**
+![Image](https://github.com/user-attachments/assets/91e39fa2-ee9b-407a-88bb-41bc3d56708f)
 
 ## 🚀 설치 및 실행 방법
 ### 1. 프로젝트 클론
@@ -98,6 +98,8 @@ docker-compose up --build
 |  AI Model  |<img src="https://img.shields.io/badge/pytorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white">||
 |  Infra  |<img src="https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"> <img src="https://img.shields.io/badge/nginx-009639?style=for-the-badge&logo=nginx&logoColor=white">|
 
+## 🏗️ 시스템 구성 (3-Tier Architecture)
+![docker 3-tier Archtecture](https://github.com/user-attachments/assets/25c7ae01-789f-4d19-80e7-bcc1f8c9c22e)
 
 ## 📬 API 명세
 |Method|URL|기능|
