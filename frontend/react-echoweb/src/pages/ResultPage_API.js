@@ -114,13 +114,13 @@ const ResultPage = () => {
           <div>
             <b style={{ fontSize: 22 }}>Original Video</b>
             <div className="imgbox">
-              {origVid ? <video src={origVid} controls width="250" /> : <div className="img-placeholder" />}
+              {origVid ? <video src={"http://localhost:4242/" + origVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
           <div style={{ marginTop: 20 }}>
             <b style={{ fontSize: 22 }}>Segmentation video</b>
             <div className="imgbox">
-              {segVid ? <video src={segVid} controls width="250" /> : <div className="img-placeholder" />}
+              {segVid ? <video src={"http://localhost:4242/" + segVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
         </div>
