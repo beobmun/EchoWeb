@@ -22,7 +22,9 @@ const ResultPage = () => {
   const [ef, setEF] = useState(null);
 
   // Hover Preview State
+  const HOST = "http://10.125.208.184:4242/";  // 본인 환경 맞게!
   const [hoverPreview, setHoverPreview] = useState(null);
+
 
   // 데이터 불러오기
   useEffect(() => {
@@ -112,13 +114,13 @@ const ResultPage = () => {
           <div>
             <b style={{ fontSize: 22 }}>Original Video</b>
             <div className="imgbox">
-              {origVid ? <video src={"http://localhost:4242/" + origVid} controls width="250" /> : <div className="img-placeholder" />}
+              {origVid ? <video src={HOST + origVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
           <div style={{ marginTop: 20 }}>
-            <b style={{ fontSize: 22 }}>Segmentation video</b>
+            <b style={{ fontSize: 22 }}>Segmented video</b>
             <div className="imgbox">
-              {segVid ? <video src={"http://localhost:4242/" + segVid} controls width="250" /> : <div className="img-placeholder" />}
+              {segVid ? <video src={HOST + segVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
         </div>
@@ -133,7 +135,7 @@ const ResultPage = () => {
       {/* 점 hover 시 프레임 이미지 프리뷰 */}
       {hoverPreview && (
         <div className="frame-preview-modal">
-          <img src={"http://localhost:4242/" + hoverPreview.img} alt={`${hoverPreview.type} Frame Preview`} style={{ width: 320, borderRadius: 10, boxShadow: '0 2px 10px #8885' }} />
+          <img src={hoverPreview.img ? `${HOST}${hoverPreview.img}` : ''} alt={`${hoverPreview.type} Frame Preview`} style={{ width: 320, borderRadius: 10, boxShadow: '0 2px 10px #8885' }} />
           <div style={{ textAlign: 'center', marginTop: 5 }}>{hoverPreview.type} 프레임 preview</div>
         </div>
       )}
