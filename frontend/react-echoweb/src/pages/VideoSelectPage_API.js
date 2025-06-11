@@ -21,6 +21,8 @@ const VideoSelectPage = () => {
   const [showSegPopup, setShowSegPopup] = useState(false);
   const [finalResult, setFinalResult] = useState(null);
 
+  const HOST = "http://10.125.208.184:4242/";
+
   // fileList를 곧바로 setVideos (mount될 때 1회만)
   useEffect(() => {
     setVideos(fileList);
@@ -84,10 +86,28 @@ const VideoSelectPage = () => {
       
       {/* 영상 preview */}
       {preview && (
-        <div className="preview-modal" onClick={e => e.stopPropagation()}>
-          <video src={"http://localhost:4242/" + preview} controls autoPlay loop />
+        <div
+          className="preview-overlay" // 배경 클릭을 감지하는 div
+          onClick={() => setPreview(null)} // 바깥 클릭시 preview 종료!
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            zIndex: 1000, background: 'rgba(0,0,0,0.1)'
+          }}
+        >
+          <div
+            className="preview-modal"
+            onClick={e => e.stopPropagation()} // 모달 내부 클릭은 이벤트 전파 중단
+            style={{
+              position: 'absolute', left: '50%', top: '50%',
+              transform: 'translate(-50%,-50%)', background: '#fff',
+              borderRadius: 12, boxShadow: '0 2px 16px #0004', padding: 8
+            }}
+          >
+            <video src={preview ? `${HOST}${preview}` : ''} controls autoPlay loop />
+          </div>
         </div>
       )}
+
       {/* SegmentationPopup */}
       {showSegPopup && (
         <SegmentationPopup
