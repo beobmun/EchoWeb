@@ -22,7 +22,7 @@ const ResultPage = () => {
   const [ef, setEF] = useState(null);
 
   // Hover Preview State
-  const HOST = "http://localhost:4242";  // 본인 환경 맞게!
+  const HOST = "http://10.125.208.184:4242/";  // 본인 환경 맞게!
   const [hoverPreview, setHoverPreview] = useState(null);
 
 
@@ -114,13 +114,13 @@ const ResultPage = () => {
           <div>
             <b style={{ fontSize: 22 }}>Original Video</b>
             <div className="imgbox">
-              {origVid ? <video src={"http://localhost:4242/" + origVid} controls width="250" /> : <div className="img-placeholder" />}
+              {origVid ? <video src={HOST + origVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
           <div style={{ marginTop: 20 }}>
             <b style={{ fontSize: 22 }}>Segmented video</b>
             <div className="imgbox">
-              {segVid ? <video src={"http://localhost:4242/" + segVid} controls width="250" /> : <div className="img-placeholder" />}
+              {segVid ? <video src={HOST + segVid} controls width="250" /> : <div className="img-placeholder" />}
             </div>
           </div>
         </div>

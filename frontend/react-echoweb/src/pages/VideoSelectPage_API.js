@@ -21,7 +21,7 @@ const VideoSelectPage = () => {
   const [showSegPopup, setShowSegPopup] = useState(false);
   const [finalResult, setFinalResult] = useState(null);
 
-  const HOST = "http://10.125.208.186:8042";
+  const HOST = "http://10.125.208.184:4242/";
 
   // fileList를 곧바로 setVideos (mount될 때 1회만)
   useEffect(() => {
