@@ -141,7 +141,7 @@ EchoWeb/
 ## 👨‍💻 Team Members
 |이름|역할|GitHub|
 |--|----|------|
-|조계진|프론트엔드 개발|https://github.com/CorinEz|
+|조계진|프론트엔드 개발|https://github.com/gyejin|
 |한법문|백엔드 개발|https://github.com/beobmun|
 
 ## ⚖️ License
